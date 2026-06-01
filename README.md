@@ -1,7 +1,8 @@
 # SIMAUCATAR
 
 **Sistema Jestaun Funsionáriu ba Postu Administrativu Maucatar.**
-HRIS lokal berbasis CodeIgniter 4 untuk mengelola pegawai, presensi, lisensi/cuti, payroll, dokumen, anunsiu, sansaun, audit log, dan laporan operasional.
+
+SIMAUCATAR mak aplikasaun HRIS lokál ho CodeIgniter 4 hodi ajuda administrasaun Maucatar jere funsionáriu, prezensa, lisensa, saláriu, dokumentu, anunsiu, sansaun, audit log, backup, no relatóriu iha sistema ida deit.
 
 ![CodeIgniter](https://img.shields.io/badge/CodeIgniter_4-EF4223?style=for-the-badge&logo=codeigniter&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP_8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)
@@ -11,104 +12,106 @@ HRIS lokal berbasis CodeIgniter 4 untuk mengelola pegawai, presensi, lisensi/cut
 ![PHPUnit](https://img.shields.io/badge/PHPUnit-366488?style=for-the-badge&logo=php&logoColor=white)
 
 ![Lian Tetun](https://img.shields.io/badge/Lian-Tetun-16A34A?style=flat-square)
-![HRIS](https://img.shields.io/badge/Domain-HRIS-0F766E?style=flat-square)
-![RBAC](https://img.shields.io/badge/Security-RBAC-7C3AED?style=flat-square)
-![CSRF](https://img.shields.io/badge/Security-CSRF-DC2626?style=flat-square)
-![Local First](https://img.shields.io/badge/Deployment-Local_First-F59E0B?style=flat-square)
+![Domíniu HRIS](https://img.shields.io/badge/Domíniu-HRIS-0F766E?style=flat-square)
+![Seguransa RBAC](https://img.shields.io/badge/Seguransa-RBAC-7C3AED?style=flat-square)
+![CSRF](https://img.shields.io/badge/Seguransa-CSRF-DC2626?style=flat-square)
+![Lokal Primeiro](https://img.shields.io/badge/Implantasaun-Lokál-F59E0B?style=flat-square)
 
 ---
 
 ## Kona-ba Projetu
 
-**SIMAUCATAR** membantu administrasaun Maucatar mengelola data sumber daya manusia dalam satu aplikasi lokal yang rapi dan bisa diaudit.
+SIMAUCATAR dezenvolve hodi suporta prosesu rekursu umanu iha Postu Administrativu Maucatar. Sistema ida-ne'e fó fatin ba admin no funsionáriu hodi halo servisu loroloron ho dadus ne'ebé konsistente, fasil atu buka, no bele audit.
 
-- Admin dapat mengelola pegawai, struktur organisasi, presensi, lisensi, payroll, dokumen, anunsiu, sansaun, laporan, backup, dan audit log.
-- Funsionáriu dapat melihat dashboard pribadi, clock in/out, mengajukan lisensi, melihat dokumen, profil, dan slip salariu.
-- Sistem memakai role based access control, CSRF, password hashing, audit trail, dan method route yang lebih aman untuk aksi mutasi.
-- Tampilan aplikasi memakai label Tetun agar sesuai konteks operasional lokal.
+- Administradór bele jere funsionáriu, departamentu, pozisaun, kategoria, prezensa, lisensa, saláriu, dokumentu, anunsiu, sansaun, relatóriu, audit log, no backup.
+- Funsionáriu bele haree painel rasik, halo clock in/out, haruka pedidu lisensa, haree dokumentu, haree resibu saláriu, no atualiza perfil.
+- Sistema uza kontrolu asesu bazeia ba papel, CSRF, hash senha, audit trail, no route mutasaun ho method seguru.
+- Label aplikasaun orienta ba lian Tetun atu hatán ba kontestu operasionál lokál.
 
-## Teknolojia ne'ebe Uza
+## Teknolojia ne'ebé Uza
 
 | Kategoria | Teknolojia | Funsaun |
 | --- | --- | --- |
-| Backend | CodeIgniter 4 | Routing, controller, filter, migration, dan service aplikasi |
-| Linguajen | PHP 8.1+ | Logika HRIS, validasi, session, dan proses server-side |
-| Database | MySQL / MariaDB | Penyimpanan pegawai, presensi, payroll, dokumen, audit, dan menu |
-| Frontend | Bootstrap 5 | Layout dashboard, form, modal, tabel, dan komponen responsif |
-| Chart | ApexCharts | Grafik dashboard admin dan funsionáriu |
-| Tabel | DataTables | Pencarian, sorting, dan pagination tabel operasional |
-| Alert | SweetAlert2 / Notyf | Feedback aksi pengguna |
-| Dokumen | DomPDF | Export laporan PDF |
-| Spreadsheet | PhpSpreadsheet | Export dan import data berbasis spreadsheet/CSV |
-| Testing | PHPUnit | Unit test dan guard regression |
-| CLI | Spark Commands | Migration, server lokal, dan command presensi otomatis |
+| Backend | CodeIgniter 4 | Routing, controller, filter, migration, no service aplikasaun |
+| Linguajen | PHP 8.1+ | Lójika HRIS, validasaun, session, no prosesu server-side |
+| Baze Dadus | MySQL / MariaDB | Rai dadus funsionáriu, prezensa, payroll, dokumentu, audit, no menu |
+| Frontend | Bootstrap 5 | Layout painel, form, modal, tabela, no komponente responsivu |
+| Gráfiku | ApexCharts | Vizualizasaun dadus iha painel admin no funsionáriu |
+| Tabela | DataTables | Buka, ordena, no pagina dadus operasionál |
+| Alert | SweetAlert2 / Notyf | Feedback visual ba asaun utilizadór |
+| Dokumentu | DomPDF | Jera no exporta relatóriu PDF |
+| Spreadsheet | PhpSpreadsheet | Importa no exporta dadus CSV/Excel |
+| Testing | PHPUnit | Test automatizadu no guard ba regressaun |
+| CLI | Spark Commands | Migration, server lokál, no command prezensa automátiku |
 
 ## Funsaun Prinsipál
 
-### Painel Administrador
+### Painel Administradór
 
-- Kartu ringkasan total funsionáriu, prezensa ohin, lisensa pendente, dan anunsiu.
-- Grafik tendénsia prezensa 15 hari terakhir untuk `Prezente`, `Tardi`, `Falta`, dan `Lisensa`.
-- Grafik komposisi departamentu.
-- Ringkasan anunsiu dan sansaun terbaru.
+- Kartu resumu ba total funsionáriu, prezensa ohin, lisensa pendente, no anunsiu.
+- Gráfiku tendénsia prezensa loron 15 ikus ba `Prezente`, `Tardi`, `Falta`, no `Lisensa`.
+- Gráfiku kompozisaun departamentu.
+- Lista anunsiu ikus no sansaun foun.
 
 ### Jestaun Funsionáriu
 
-- CRUD data pegawai lengkap dengan departamentu, pozisaun, kategoria, status, dan akun login.
-- Import CSV pegawai serta template import.
-- Reset password pegawai oleh admin.
-- Upload foto profil pegawai.
+- CRUD dadus funsionáriu ho departamentu, pozisaun, kategoria, status, no akun login.
+- Importa dadus funsionáriu husi CSV.
+- Template import CSV hodi fó formatu dadus ne'ebé loos.
+- Reset senha funsionáriu husi administradór.
+- Upload foto perfil funsionáriu.
 
 ### Prezensa
 
-- Clock in dan clock out untuk funsionáriu.
-- Konfigurasi jam presensi, toleransi, weekend, dan hari libur.
-- Auto-mark absent melalui command `attendance:mark-absent`.
-- Riwayat presensi admin dan pegawai.
+- Clock in no clock out ba funsionáriu.
+- Konfigurasaun oras prezensa, toleránsia, loron semana, no feriadu.
+- Auto-mark absent liuhusi command `attendance:mark-absent`.
+- Istória prezensa ba administradór no funsionáriu.
 
 ### Lisensa
 
-- Pengajuan lisensi oleh funsionáriu.
-- Approval/rejection oleh admin dengan komentar.
-- Validasi saldo lisensi dan konflik presensi.
-- Rekalkulasi leave balance setelah approval.
+- Pedidu lisensa online husi funsionáriu.
+- Aprovasaun ka rejeisaun husi administradór ho komentáriu.
+- Validasaun saldo lisensa no konfliktu ho prezensa.
+- Rekalkulasaun leave balance bainhira estadu lisensa muda.
 
 ### Saláriu
 
-- Proses payroll per pegawai, bulan, dan tahun.
-- Komponen subsidiu dan deskontu.
-- Integrasi sansaun untuk potongan.
-- Payroll period lock/unlock agar periode yang selesai tidak berubah tanpa izin.
-- Slip salariu untuk pegawai.
+- Prosesu saláriu ba kada funsionáriu, fulan, no tinan.
+- Komponente subsidiu no deskontu.
+- Integrasaun sansaun hodi kalkula potongan.
+- Payroll period lock/unlock hodi proteje dadus periodu ne'ebé remata ona.
+- Resibu saláriu ba funsionáriu ida-idak.
 
 ### Anunsiu
 
-- Pusat pemberitahuan sistem memakai menu `Anunsiu`.
-- Header bell menampilkan anunsiu terbaru.
-- Fitur notifikasi terpisah sudah digabung ke Anunsiu agar tidak ada menu ganda.
+- Menu `Anunsiu` sai sentru ba komunikasaun no avizu sistema.
+- Header bell hatudu anunsiu foun.
+- Fitur notifikasaun separadu halo ona merge ba Anunsiu atu evita menu duplikadu.
+- Anunsiu bele iha tempu remata atu la mosu tan iha header bainhira tempu liu ona.
 
 ### Dokumentu
 
-- Admin dapat upload dokumen pegawai.
-- Kategori dokumen bisa dikonfigurasi.
-- Visibilitas dokumen bisa `admin_only` atau `employee_visible`.
-- Pegawai dapat melihat dokumen yang memang dibuka untuk dirinya.
+- Administradór bele upload dokumentu funsionáriu.
+- Kategoria dokumentu bele konfiguradu.
+- Visibilidade dokumentu bele `admin_only` ka `employee_visible`.
+- Funsionáriu haree deit dokumentu ne'ebé administradór loke ba nia.
 
-### Audit, Backup, dan Relatóriu
+### Audit, Backup, no Relatóriu
 
-- Audit log untuk aksi penting.
-- Backup database dari UI maintenance.
-- Restore SQL dari UI maintenance.
-- Laporan pegawai, presensi, lisensi, salariu, dan sansaun.
-- Export PDF/CSV.
+- Audit log ba asaun importante.
+- Backup baze dadus husi UI Manutensaun.
+- Restore SQL husi UI Manutensaun.
+- Relatóriu funsionáriu, prezensa, lisensa, saláriu, no sansaun.
+- Exporta relatóriu ba PDF no CSV.
 
-## Workflow Sistema
+## Fluxu Sistema
 
 ```mermaid
 flowchart LR
-    A[Admin] --> B[Jestaun Funsionáriu]
+    A[Administradór] --> B[Jestaun Funsionáriu]
     A --> C[Prezensa no Feriadu]
-    A --> D[Lisensa Approval]
+    A --> D[Aprovasaun Lisensa]
     A --> E[Payroll]
     A --> F[Anunsiu]
     A --> G[Relatóriu no Audit]
@@ -129,21 +132,21 @@ flowchart LR
 ```text
 simaucatar/
 |-- app/
-|   |-- Commands/              # Command CLI seperti attendance:mark-absent
-|   |-- Config/                # Routes, filters, database, dan konfigurasi CI4
+|   |-- Commands/              # Command CLI hanesan attendance:mark-absent
+|   |-- Config/                # Routes, filters, database, no konfigurasaun CI4
 |   |-- Controllers/           # Auth, Administrador, Funsionariu, Relatoriu, Settings
 |   |-- Database/
-|   |   |-- Migrations/        # Skema dan update database
-|   |   `-- Seeds/             # Seeder role, menu, dan data awal
-|   |-- Filters/               # Auth dan authorization filter
-|   |-- Models/                # Query aplikasi dan laporan
+|   |   |-- Migrations/        # Skema no atualizasaun baze dadus
+|   |   `-- Seeds/             # Dadus inisiál ba role, menu, no sistema
+|   |-- Filters/               # Guard login no autorizasaun
+|   |-- Models/                # Query aplikasaun no relatóriu
 |   `-- Views/
-|       |-- layouts/           # Main layout, sidebar, header, footer
-|       |-- pages/             # Halaman admin, funsionáriu, commons, settings
-|       `-- widgets/           # Modal/form reusable
+|       |-- layouts/           # Layout prinsipál, sidebar, header, footer
+|       |-- pages/             # Pajina administradór, funsionáriu, commons, settings
+|       `-- widgets/           # Modal no form reutilizável
 |-- public/
-|   |-- assets/                # CSS, JS, icon, dan bundle frontend
-|   `-- uploads/               # Upload profil dan dokumen
+|   |-- assets/                # CSS, JS, icon, no bundle frontend
+|   `-- uploads/               # Upload foto perfil no dokumentu
 |-- tests/
 |   `-- unit/                  # PHPUnit test
 |-- writable/                  # Cache, log, session, backup
@@ -152,9 +155,9 @@ simaucatar/
 `-- spark
 ```
 
-## Oinsa Halai iha Lokal
+## Oinsá Halai iha Lokál
 
-### 1. Instala dependensia
+### 1. Instala Dependénsia
 
 ```bash
 composer install
@@ -162,7 +165,7 @@ composer install
 
 ### 2. Konfigura `.env`
 
-Pastikan konfigurasi utama seperti ini:
+Konfigurasaun prinsipál iha `.env`:
 
 ```ini
 CI_ENVIRONMENT = development
@@ -171,48 +174,48 @@ app.baseURL = 'http://localhost:8080/'
 database.default.hostname = 127.0.0.1
 database.default.database = starterpanel
 database.default.username = root
-database.default.password = <password-mysql-local>
+database.default.password = <senha-mysql-lokál>
 database.default.DBDriver = MySQLi
 ```
 
-### 3. Halai migration
+### 3. Halai Migration
 
 ```bash
 php spark migrate
 ```
 
-Jika `php` belum terbaca di terminal Windows:
+Iha Windows, se `php` seidauk hetan iha PATH:
 
 ```powershell
 C:\php\php.exe spark migrate
 ```
 
-### 4. Hahu server lokal
+### 4. Hahu Server Lokál
 
 ```bash
 php spark serve
 ```
 
-Atau:
+Ka uza path PHP diretamente:
 
 ```powershell
 C:\php\php.exe spark serve
 ```
 
-Aplikasi terbuka di:
+Aplikasaun bele asesu iha:
 
 ```text
 http://localhost:8080
 ```
 
-## Login Lokal
+## Login Lokál
 
 ```text
 Username: admin
 Password: admin123
 ```
 
-Alternatif:
+Alternativu:
 
 ```text
 Username: admin@gmail.com
@@ -247,31 +250,32 @@ node --check public/assets/js/app.js
 vendor/bin/phpunit --no-coverage
 ```
 
-Test yang sudah tersedia menjaga beberapa area penting:
+Test automatizadu ne'ebé iha:
 
-- Route mutasi memakai method aman.
-- Modul operasional seperti audit, maintenance, feriadu, leave balance, documentu, dan anunsiu terhubung.
-- Form POST memiliki CSRF.
-- Source aplikasi bebas marker mojibake utama.
-- Modul notifikasi terpisah tidak aktif karena sudah digabung ke Anunsiu.
+- Route mutasaun uza method seguru.
+- Módulu audit, maintenance, feriadu, leave balance, documentu, no anunsiu konekta ona.
+- Form POST hotu uza CSRF.
+- Source aplikasaun la iha marker mojibake prinsipál.
+- Módulu notifikasaun separadu la ativu tanba funsaun ne'e tama ona ba Anunsiu.
+- Gráfiku painel uza ApexCharts lokál no iha dadus tendénsia.
 
-## Tags
+## Etiketa
 
 `codeigniter4` `php` `mysql` `bootstrap` `apexcharts` `hris` `payroll` `attendance` `leave-management` `document-management` `audit-log` `tetun` `timor-leste` `maucatar`
 
-## Roadmap
+## Planu Oin
 
-- Targeting Anunsiu per role/departamentu.
-- Approval lisensa bertingkat.
-- Shift multi-jadwal.
-- 2FA untuk admin.
-- Deployment production hardening.
-- Dashboard analytics lebih lengkap untuk tren bulanan dan tahunan.
+- Targeting Anunsiu tuir papel no departamentu.
+- Aprovasaun lisensa ho nível barak.
+- Shift multi-jadwál.
+- 2FA ba administradór.
+- Hardening ba implantasaun produsaun.
+- Dashboard analytics ba tendénsia fulan no tinan.
 
-## Licensa
+## Lisensa
 
 Projetu ida-ne'e uza lisensa [MIT](LICENSE).
 
 ---
 
-**SIMAUCATAR** - HRIS lokal ne'ebe rapi, aman, no siap uza ba operasaun Postu Administrativu Maucatar.
+**SIMAUCATAR** - HRIS lokál ne'ebé ordenadu, seguru, no prontu hodi suporta operasaun Postu Administrativu Maucatar.
