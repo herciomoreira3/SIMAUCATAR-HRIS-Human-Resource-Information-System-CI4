@@ -14,7 +14,7 @@ class Home extends BaseController
         }
 
         $data = array_merge($this->data, [
-            'title'         => 'Dashboard Page'
+            'title'         => 'Pajina Painel'
         ]);
         return view('pages/commons/dashboard', $data);
     }

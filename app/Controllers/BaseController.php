@@ -67,15 +67,15 @@ abstract class BaseController extends Controller
         } else {
             $subsegment = '';
         }
+        $role = session()->get('role');
+
         $this->data = [
             'segment'        => $segment,
             'subsegment'     => $subsegment,
             'user'           => $user,
-            'MenuCategory'   => $this->ApplicationModel->getAccessMenuCategory(session()->get('role')),
-            'avizu_notif'    => $this->ApplicationModel->getAvizu()
+            'MenuCategory'   => $role ? $this->ApplicationModel->getAccessMenuCategory($role) : [],
+            'avizu_notif'    => $this->ApplicationModel->getAvizu(),
         ];
-
-        $this->autoMarkAbsent();
     }
 
     protected function autoMarkAbsent()
@@ -148,4 +148,25 @@ abstract class BaseController extends Controller
             ], ['id' => $p['id']]);
         }
     }
+
+    protected function logAudit(string $action, ?string $entityType = null, $entityId = null, ?array $oldValues = null, ?array $newValues = null): void
+    {
+        if (!$this->db || !$this->db->tableExists('audit_logs')) {
+            return;
+        }
+
+        $this->db->table('audit_logs')->insert([
+            'actor_user_id' => session()->get('userID'),
+            'actor_role'    => session()->get('role_name') ?? session()->get('role'),
+            'action'        => $action,
+            'entity_type'   => $entityType,
+            'entity_id'     => $entityId !== null ? (string) $entityId : null,
+            'old_values'    => $oldValues !== null ? json_encode($oldValues) : null,
+            'new_values'    => $newValues !== null ? json_encode($newValues) : null,
+            'ip_address'    => $this->request?->getIPAddress(),
+            'user_agent'    => substr((string) $this->request?->getUserAgent(), 0, 255),
+            'created_at'    => date('Y-m-d H:i:s'),
+        ]);
+    }
+
 }

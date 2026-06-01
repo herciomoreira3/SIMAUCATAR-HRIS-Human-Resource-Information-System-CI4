@@ -43,6 +43,7 @@
                 <h5 class="card-title mb-0">Lista Pedidu Lisensa</h5>
                 <div class="d-flex gap-2">
                     <form action="<?= base_url('administrador/relatoriu/export/lisensa') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">
@@ -50,6 +51,7 @@
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/lisensa') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">

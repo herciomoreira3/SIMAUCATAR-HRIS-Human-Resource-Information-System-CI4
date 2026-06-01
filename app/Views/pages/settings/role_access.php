@@ -1,10 +1,10 @@
 <?= $this->extend('layouts/main'); ?>
 <?= $this->section('content'); ?>
 <div class="container">
-    <h1 class="h3 mb-3"><strong><?= $role['role_name']; ?></strong> Access Menu </h1>
+    <h1 class="h3 mb-3"><strong><?= $role['role_name']; ?></strong> Asesu Menu </h1>
     <div class="card">
         <div class="card-header">
-            <h5 class="card-title mb-0">Role Access Menu List</h5>
+            <h5 class="card-title mb-0">Lista Asesu Menu Papel</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -13,7 +13,7 @@
                         <tr>
                             <th>Menu</th>
                             <th>Url</th>
-                            <th>Action</th>
+                            <th>Asaun</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -24,7 +24,7 @@
                                     <div class="form-check">
                                         <input class="form-check-input menu_category_permission" type="checkbox" <?= check_menuCategory_access($role['id'], $menuCategory['id']) ?> data-role="<?= $role['id'] ?>" data-menucategory="<?= $menuCategory['id'] ?>">
                                         <label class="form-check-label">
-                                            <?= (check_menuCategory_access($role['id'], $menuCategory['id']) == 'checked') ? 'Access Granted' : 'Access Not Granted' ?>
+                                            <?= (check_menuCategory_access($role['id'], $menuCategory['id']) == 'checked') ? 'Iha Asesu' : 'La iha Asesu' ?>
                                         </label>
                                     </div>
                                 </td>
@@ -37,7 +37,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input menu_permission" type="checkbox" <?= check_menu_access($role['id'], $menu['menu_id']) ?> data-role="<?= $role['id'] ?>" data-menu="<?= $menu['menu_id'] ?>">
                                                 <label class="form-check-label">
-                                                    <?= (check_menu_access($role['id'], $menu['id']) == 'checked') ? 'Access Granted' : 'Access Not Granted' ?>
+                                                    <?= (check_menu_access($role['id'], $menu['id']) == 'checked') ? 'Iha Asesu' : 'La iha Asesu' ?>
                                                 </label>
                                             </div>
                                         </td>
@@ -54,7 +54,7 @@
                                                     <div class="form-check ms-4">
                                                         <input class="form-check-input submenu_permission" type="checkbox" <?= check_submenu_access($role['id'], $subMenu['submenu_id']) ?> data-role="<?= $role['id'] ?>" data-submenu="<?= $subMenu['submenu_id'] ?>">
                                                         <label class="form-check-label">
-                                                            <?= (check_submenu_access($role['id'], $subMenu['submenu_id']) == 'checked') ? 'Access Granted' : 'Access Not Granted' ?>
+                                                            <?= (check_submenu_access($role['id'], $subMenu['submenu_id']) == 'checked') ? 'Iha Asesu' : 'La iha Asesu' ?>
                                                         </label>
                                                     </div>
                                                 </td>

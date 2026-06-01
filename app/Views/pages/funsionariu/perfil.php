@@ -18,7 +18,7 @@
                 <div class="text-muted mb-2"><?= $funsionariu['naran_pozisaun'] ?></div>
 
                 <div class="mt-3">
-                    <a class="btn btn-primary btn-sm" href="#">Update Foto</a>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalUpdateFoto">Atualiza Foto</button>
                 </div>
             </div>
             <hr class="my-0" />
@@ -83,23 +83,77 @@
         
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Informasaun Akun Login</h5>
+                <h5 class="card-title mb-0">Informasaun Akun Tama</h5>
             </div>
             <div class="card-body">
                 <table class="table table-sm">
                     <tbody>
                         <tr>
-                            <th width="30%">Username</th>
+                            <th width="30%">Naran Utilizador</th>
                             <td><?= $funsionariu['naran_utilizador'] ?></td>
                         </tr>
                         <tr>
-                            <th>Password</th>
-                            <td><a href="#" class="btn btn-sm btn-warning">Konta Password Foun</a></td>
+                            <th>Senha</th>
+                            <td><button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalUpdatePassword">Troka Senha</button></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalUpdateFoto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="<?= base_url('funsionariu/perfil/foto') ?>" method="post" enctype="multipart/form-data">
+            <?= csrf_field() ?>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Atualiza Foto Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Foto JPG/PNG maksimal 2MB</label>
+                    <input type="file" name="foto_perfil" class="form-control" accept="image/png,image/jpeg" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kansela</button>
+                    <button type="submit" class="btn btn-primary">Rai Foto</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalUpdatePassword" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="<?= base_url('funsionariu/perfil/password') ?>" method="post">
+            <?= csrf_field() ?>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Troka Senha</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Senha Tuan</label>
+                        <input type="password" name="password_lama" class="form-control" required autocomplete="current-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Senha Foun</label>
+                        <input type="password" name="password_baru" class="form-control" required minlength="8" autocomplete="new-password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Konfirma Senha Foun</label>
+                        <input type="password" name="password_konfirma" class="form-control" required minlength="8" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kansela</button>
+                    <button type="submit" class="btn btn-warning">Troka Senha</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 <?= $this->endSection(); ?>

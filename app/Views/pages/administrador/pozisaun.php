@@ -5,14 +5,14 @@
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -24,6 +24,7 @@
             </div>
             <div class="card-body">
                 <form action="<?= base_url('administrador/pozisaun') ?>" method="post">
+                    <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Naran Pozisaun</label>
                         <input type="text" name="naran_pozisaun" class="form-control" required>
@@ -56,11 +57,15 @@
                         <?php foreach($pozisaun as $i => $p): ?>
                         <tr>
                             <td><?= $i+1 ?></td>
-                            <td><?= $p['naran_pozisaun'] ?></td>
+                            <td><?= esc($p['naran_pozisaun']) ?></td>
                             <td>$ <?= number_format($p['salariu_baziku'], 2) ?></td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $p['id'] ?>">Edit</button>
-                                <a href="<?= base_url('administrador/pozisaun/delete/'.$p['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos pozisaun <?= $p['naran_pozisaun'] ?>?')">Hamos</a>
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $p['id'] ?>">Edit</button>
+                                <form action="<?= base_url('administrador/pozisaun/delete/'.$p['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos pozisaun ne\'e?')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
+                                </form>
                             </td>
                         </tr>
 
@@ -69,14 +74,15 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <form action="<?= base_url('administrador/pozisaun/update/'.$p['id']) ?>" method="post">
+                    <?= csrf_field() ?>
                                         <div class="modal-header">
                                             <h5 class="modal-title">Edit Pozisaun</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div class="mb-3">
                                                 <label class="form-label">Naran Pozisaun</label>
-                                                <input type="text" name="naran_pozisaun" class="form-control" value="<?= $p['naran_pozisaun'] ?>" required>
+                                                <input type="text" name="naran_pozisaun" class="form-control" value="<?= esc($p['naran_pozisaun']) ?>" required>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Saláriu Báziku ($)</label>

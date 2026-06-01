@@ -2,7 +2,7 @@
 <?= $this->section('content'); ?>
 <div class="row mb-4">
     <div class="col-md-6">
-        <h1 class="h3 mb-0"><strong>Dashboard</strong> Administrador</h1>
+        <h1 class="h3 mb-0"><strong>Painel</strong> Administrador</h1>
         <p class="text-muted mb-0">Benvindu fali, hare resumu atividade ohin nian.</p>
     </div>
     <div class="col-md-6 text-end d-flex align-items-center justify-content-end">
@@ -80,7 +80,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col mt-0">
-                        <h5 class="card-title text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Avizu</h5>
+                        <h5 class="card-title text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Anunsiu</h5>
                     </div>
                     <div class="col-auto">
                         <div class="stat">
@@ -127,7 +127,7 @@
     <div class="col-12 col-lg-8 d-flex">
         <div class="card flex-fill">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title">Avizu Ikus</h5>
+                <h5 class="card-title">Anunsiu Ikus</h5>
                 <a href="<?= base_url('administrador/avizu') ?>" class="text-xs text-primary text-decoration-none">Hare hotu</a>
             </div>
             <div class="table-responsive">
@@ -141,13 +141,13 @@
                     </thead>
                     <tbody>
                         <?php if(empty($avizu_ikus)): ?>
-                        <tr><td colspan="3" class="text-center py-4 text-muted">La iha avizu foun.</td></tr>
+                        <tr><td colspan="3" class="text-center py-4 text-muted">La iha anunsiu foun.</td></tr>
                         <?php else: ?>
                             <?php foreach(array_slice($avizu_ikus, 0, 5) as $av): ?>
                             <tr>
-                                <td class="font-medium"><?= $av['titulu'] ?></td>
+                                <td class="font-medium"><?= esc($av['titulu']) ?></td>
                                 <td><span class="text-xs"><?= date('d M Y', strtotime($av['data_publikasaun'])) ?></span></td>
-                                <td class="text-muted"><?= substr(strip_tags($av['konteudu']), 0, 40) ?>...</td>
+                                <td class="text-muted"><?= esc(substr(strip_tags($av['konteudu']), 0, 40)) ?>...</td>
                             </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -172,8 +172,8 @@
                                 <i data-feather="alert-circle" class="text-danger" style="width: 14px; height: 14px;"></i>
                             </div>
                             <div>
-                                <p class="mb-0 font-medium text-dark" style="font-size: 0.85rem;"><?= $s['naran_kompletu'] ?></p>
-                                <small class="text-muted d-block" style="font-size: 0.75rem;"><?= $s['tipu_sansaun'] ?> • <?= date('d M Y', strtotime($s['data_sansaun'])) ?></small>
+                                <p class="mb-0 font-medium text-dark" style="font-size: 0.85rem;"><?= esc($s['naran_kompletu']) ?></p>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;"><?= esc($s['tipu_sansaun']) ?> - <?= date('d M Y', strtotime($s['data_sansaun'])) ?></small>
                             </div>
                         </li>
                         <?php endforeach; ?>
@@ -187,15 +187,22 @@
 <?= $this->endSection(); ?>
 
 <?= $this->section('javascript'); ?>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        if (typeof ApexCharts === 'undefined') {
+            document.querySelectorAll('#chart-prezensa-trend, #chart-dept-comp').forEach(function (el) {
+                el.innerHTML = '<div class="text-center text-muted py-5">Gráfiku la bele loke. Favor halo refresh pajina.</div>';
+            });
+            return;
+        }
+
         // Theme Colors
         const primary = '#2563eb';
         const secondary = '#64748b';
         const success = '#10b981';
         const danger = '#ef4444';
         const warning = '#f59e0b';
+        const info = '#3b82f6';
 
         // Attendance Trend Chart
         new ApexCharts(document.querySelector("#chart-prezensa-trend"), {
@@ -203,8 +210,14 @@
                 name: 'Prezente',
                 data: <?= $chart_prezente ?>
             }, {
+                name: 'Tardi',
+                data: <?= $chart_tardi ?>
+            }, {
                 name: 'Falta',
                 data: <?= $chart_falta ?>
+            }, {
+                name: 'Lisensa',
+                data: <?= $chart_lisensa ?>
             }],
             chart: {
                 type: 'area',
@@ -212,7 +225,7 @@
                 toolbar: { show: false },
                 fontFamily: 'Inter, sans-serif'
             },
-            colors: [primary, danger],
+            colors: [success, warning, danger, info],
             fill: {
                 type: 'gradient',
                 gradient: {
@@ -247,6 +260,9 @@
 
         // Department Composition Chart
         var deptData = <?= $dept_comp ?>;
+        if (!Array.isArray(deptData) || deptData.length === 0) {
+            deptData = [{ naran_departamentu: 'La iha dadus', total: 0 }];
+        }
         new ApexCharts(document.querySelector("#chart-dept-comp"), {
             series: deptData.map(item => parseInt(item.total)),
             chart: {

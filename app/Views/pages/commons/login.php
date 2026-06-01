@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>SI - Maucatar | Login</title>
+    <title>SI - Maucatar | Tama</title>
 
     <link rel="icon" type="image/png" href="https://timor-leste.gov.tl/wp-content/themes/timor/images/logo.png" />
 
@@ -60,22 +60,15 @@
                                 <p class="text-muted font-medium mb-0" style="font-size: 0.9rem;">Munisipiu Covalima</p>
                             </div>
 
-                            <form action="<?= base_url('login'); ?>" method="POST">
+<form action="<?= base_url('login'); ?>" method="POST">
+                                <?= csrf_field() ?>
                                 <div class="mb-4">
-                                    <label class="form-label">Email</label>
-                                    <input class="form-control" type="email" name="inputEmail" placeholder="Hatama ita-nia email" required />
+                                    <label class="form-label">Naran Utilizador ka Email</label>
+                                    <input class="form-control" type="text" name="inputEmail" value="<?= old('inputEmail') ?>" placeholder="Hatama naran utilizador ka email" required autocomplete="username" />
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label">Password</label>
-                                    <input class="form-control" type="password" name="inputPassword" placeholder="Hatama ita-nia password" required />
-                                </div>
-                                <div class="mb-3 d-flex align-items-center">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe">
-                                        <label class="form-check-label text-muted" for="rememberMe" style="font-size: 13px;">
-                                            Memória ha'u
-                                        </label>
-                                    </div>
+                                    <label class="form-label">Senha</label>
+                                    <input class="form-control" type="password" name="inputPassword" placeholder="Hatama ita-nia senha" required autocomplete="current-password" />
                                 </div>
                                 <div class="mt-4">
                                     <button type="submit" class="btn btn-primary w-100 py-2" style="font-size: 15px; font-weight: 600;">
@@ -87,14 +80,14 @@
                     </div>
                     
                     <p class="text-center text-muted mt-5" style="font-size: 11px; opacity: 0.7;">
-                        &copy; <?= date('Y') ?> - SI Maucatar. All Rights Reserved.
+                        &copy; <?= date('Y') ?> - SI Maucatar. Direitu hotu-hotu rezerva ona.
                     </p>
                 </div>
             </div>
         </div>
     </main>
 
-    <script src="<?= base_url('assets/js/app.js') ?>"></script>
+    <script src="<?= base_url('assets/js/app.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/app.js') ?>"></script>
 </body>
 
 </html>

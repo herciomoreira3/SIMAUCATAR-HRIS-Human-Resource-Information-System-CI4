@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tet">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5">
+    <meta name="description" content="Sistema manejamentu funsionariu Postu Administrativu Maucatar">
     <meta name="author" content="Gilang Heavy">
-    <meta name="keywords" content="Gilang Heavy, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
+    <meta name="keywords" content="SI Maucatar, sistema funsionariu, postu administrativu, Maucatar">
 
-    <title>CodeIgniter 4 Starter Panel</title>
+    <title>SI - Maucatar | Rejistu</title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="shortcut icon" href="favicon.ico" />
@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link href="<?= base_url('assets/css/app.css') ?>" rel="stylesheet">
 
-    <script src="<?= base_url('assets/js/app.js') ?>"></script>
+    <script src="<?= base_url('assets/js/app.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/app.js') ?>"></script>
 
 </head>
 
@@ -30,12 +30,13 @@
 
                         <div class="card">
                             <form action="<?= base_url('register'); ?>" method="POST">
+                    <?= csrf_field() ?>
                                 <div class="card-body">
                                     <?= $this->include('components/alerts'); ?>
 
                                     <div class="text-center mt-4">
-                                        <h1 class="h2">Welcome to CodeIgniter 4 Starter Panel</h1>
-                                        <p class="lead"> Register New Account </p>
+                                        <h1 class="h2">Bemvindu mai SI Maucatar</h1>
+                                        <p class="lead"> Rejistu Akun Foun </p>
                                     </div>
 
                                     <div class="m-sm-4">
@@ -45,29 +46,29 @@
                                             </div>
                                          -->
                                         <div class="mb-3">
-                                            <label class="form-label">Full Name</label>
-                                            <input class="form-control form-control-lg" type="text" name="inputFullname" placeholder="Enter your name" required />
+                                            <label class="form-label">Naran Kompletu</label>
+                                            <input class="form-control form-control-lg" type="text" name="inputFullname" placeholder="Hatama ita-nia naran" required />
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Email</label>
-                                            <input class="form-control form-control-lg" type="email" name="inputEmail" placeholder="Enter your email" required />
+                                            <input class="form-control form-control-lg" type="email" name="inputEmail" placeholder="Hatama ita-nia email" required />
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Password</label>
-                                            <input class="form-control form-control-lg" type="password" name="inputPassword" placeholder="Enter your password" required />
+                                            <label class="form-label">Senha</label>
+                                            <input class="form-control form-control-lg" type="password" name="inputPassword" placeholder="Hatama ita-nia senha" required />
 
                                         </div>
                                         <div class="mb-3">
-                                            <label class="form-label">Repeat Password</label>
-                                            <input class="form-control form-control-lg" type="password" name="inputPassword2" placeholder="Repeat your password" required />
+                                            <label class="form-label">Konfirma Senha</label>
+                                            <input class="form-control form-control-lg" type="password" name="inputPassword2" placeholder="Hatama fali ita-nia senha" required />
                                             <small>
-                                                <a href="<?= base_url() ?>">Have an account? Login</a>
+                                                <a href="<?= base_url() ?>">Iha ona akun? Tama</a>
                                             </small>
                                         </div>
                                     </div>
 
                                     <div class="text-end mt-3">
-                                        <button type="submit" class="btn btn-lg btn-primary">Register</button>
+                                        <button type="submit" class="btn btn-lg btn-primary">Rejistu</button>
                                     </div>
                                 </div>
                             </form>

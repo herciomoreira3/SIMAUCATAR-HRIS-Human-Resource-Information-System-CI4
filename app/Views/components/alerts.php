@@ -1,4 +1,4 @@
-<?php if (session()->getFlashdata('success')) : ?>
+﻿<?php if (session()->getFlashdata('success')) : ?>
     <script>
         Swal.fire({
             icon: 'success',
@@ -22,7 +22,7 @@
 
 <?php if (session()->getFlashdata('notif_success')) : ?>
     <div class="alert alert-success alert-dismissible" role="alert">
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
         <div class="alert-icon">
             <i class="align-middle" data-feather="check-circle"></i>
         </div>
@@ -33,8 +33,12 @@
 <?php endif ?>
 
 <script>
+    if (window.jQuery && $.fn.DataTable) {
     $(document).ready(function() {
         $('.datatable').each(function() {
+            if ($.fn.DataTable.isDataTable(this)) {
+                return;
+            }
             var orderAttr = $(this).attr('data-order');
             var defaultOrder = [[0, 'desc']]; 
             if (orderAttr) {
@@ -58,4 +62,5 @@
             });
         });
     });
+    }
 </script>

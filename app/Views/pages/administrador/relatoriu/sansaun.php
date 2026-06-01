@@ -51,6 +51,7 @@
                 <h5 class="card-title mb-0">Lista Sansaun Funsionáriu</h5>
                 <div class="d-flex gap-2">
                     <form action="<?= base_url('administrador/relatoriu/export/sansaun') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="fulan" value="<?= $filter['fulan'] ?>">
                         <input type="hidden" name="tinan" value="<?= $filter['tinan'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">
@@ -58,6 +59,7 @@
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/sansaun') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="fulan" value="<?= $filter['fulan'] ?>">
                         <input type="hidden" name="tinan" value="<?= $filter['tinan'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">

@@ -3,7 +3,7 @@
         <div class="row text-muted">
             <div class="col-12 text-center">
                 <p class="mb-0">
-                    <strong>Sistema Manejamentu Funsionariu Postu Administrativu Maucatar</strong> &copy; RUMAH HANTU <?= date('Y'); ?> | Page rendered in {elapsed_time} seconds | 
+                    <strong>Sistema Manejamentu Funsionariu Postu Administrativu Maucatar</strong> &copy; <?= date('Y'); ?> | Pajina ne'e prosesu iha {elapsed_time} segundu |
                 </p>
             </div>
         </div>

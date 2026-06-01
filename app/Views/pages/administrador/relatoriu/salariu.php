@@ -42,12 +42,14 @@
                 <h5 class="card-title mb-0">Rekapitulasaun Pagamentu Saláriu</h5>
                 <div class="d-flex gap-2">
                     <form action="<?= base_url('administrador/relatoriu/export/salariu') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="fulan" value="<?= $filter['fulan'] ?>">
                         <input type="hidden" name="tinan" value="<?= $filter['tinan'] ?>">
                         <input type="hidden" name="export_type" value="pdf">
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/salariu') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="fulan" value="<?= $filter['fulan'] ?>">
                         <input type="hidden" name="tinan" value="<?= $filter['tinan'] ?>">
                         <input type="hidden" name="export_type" value="excel">

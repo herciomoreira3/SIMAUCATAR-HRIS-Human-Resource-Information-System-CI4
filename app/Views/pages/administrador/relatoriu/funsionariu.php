@@ -44,12 +44,14 @@
                 <h5 class="card-title mb-0">Lista Funsionáriu</h5>
                 <div class="d-flex gap-2">
                     <form action="<?= base_url('administrador/relatoriu/export/funsionariu') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
                         <input type="hidden" name="pozisaun_id" value="<?= $filter['pozisaun_id'] ?>">
                         <input type="hidden" name="export_type" value="pdf">
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/funsionariu') ?>" method="post">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
                         <input type="hidden" name="pozisaun_id" value="<?= $filter['pozisaun_id'] ?>">
                         <input type="hidden" name="export_type" value="excel">

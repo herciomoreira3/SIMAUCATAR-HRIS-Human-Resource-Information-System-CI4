@@ -9,7 +9,7 @@
                 $current_uri = uri_string();
             ?>
             <?php foreach ($MenuCategory as $mCategory) : 
-                if (strtoupper($mCategory['menu_category']) == 'SELF SERVICE' && strtolower(session()->get('role_name')) == 'administrador') continue;
+                if (in_array(strtoupper($mCategory['menu_category']), ['SELF SERVICE', 'SERVISU RASIK'], true) && strtolower(session()->get('role_name')) == 'administrador') continue;
             ?>
                 <li class="sidebar-header">
                     <?= $mCategory['menu_category']; ?>

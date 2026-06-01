@@ -30,36 +30,51 @@ class Authorization implements FilterInterface
     {
         $uri                     = service('uri');
         $this->ApplicationModel  = new ApplicationModel();
-        
-        // Use the full relative path instead of just the first segment
-        // This allows routes like 'administrador/dashboard' to match user_menu entries
-        $path = $uri->getPath();
-        
-        if ($path) {
-            $menu = $this->ApplicationModel->getMenuByUrl($path);
-            
-            // If no exact match, try the first segment (fallback for existing logic)
-            if (!$menu) {
-                $segment = $uri->getSegment(1);
-                $menu = $this->ApplicationModel->getMenuByUrl($segment);
-            }
 
-            if (!$menu) {
-                // If still not found, it might be a public page or not a menu-controlled page
-                // We'll let it pass for now or redirect if it's meant to be protected.
-                // In this template, it seems unknown menus are redirected to /
-                return; 
-            } else {
-                $dataAccess = [
-                    'roleID' => session()->get('role'),
-                    'menuID' => $menu['id']
-                ];
-                $userAccess = $this->ApplicationModel->checkUserAccess($dataAccess);
-                if (!$userAccess) {
-                    // not granted
-                    return redirect()->to(base_url('blocked'));
-                }
+        $path = trim($uri->getPath(), '/');
+        $firstSegment = $uri->getSegment(1);
+        $roleName = strtolower((string) session()->get('role_name'));
+
+        if ($path === '' || $path === 'dashboard') {
+            return;
+        }
+
+        $adminRoles = ['administrador', 'admin', 'superadmin', 'super administrator'];
+        $adminPrefixes = ['administrador', 'users', 'menu-management', 'menu'];
+        if (in_array($firstSegment, $adminPrefixes, true) && ! in_array($roleName, $adminRoles, true)) {
+            return redirect()->to(base_url('blocked'));
+        }
+        if (in_array($firstSegment, $adminPrefixes, true) && in_array($roleName, $adminRoles, true)) {
+            return;
+        }
+
+        if ($firstSegment === 'funsionariu' && $roleName !== 'funsionariu') {
+            return redirect()->to(base_url('blocked'));
+        }
+        if ($firstSegment === 'funsionariu' && $roleName === 'funsionariu') {
+            return;
+        }
+
+        $menu = $this->ApplicationModel->getMenuByUrl($path);
+        if (!$menu) {
+            $menu = $this->ApplicationModel->getMenuByUrl($firstSegment);
+        }
+
+        if ($menu) {
+            $dataAccess = [
+                'roleID' => session()->get('role'),
+                'menuID' => $menu['id']
+            ];
+            $userAccess = $this->ApplicationModel->checkUserAccess($dataAccess);
+            if (!$userAccess) {
+                return redirect()->to(base_url('blocked'));
             }
+            return;
+        }
+
+        $protectedPrefixes = array_merge($adminPrefixes, ['funsionariu']);
+        if (in_array($firstSegment, $protectedPrefixes, true)) {
+            return redirect()->to(base_url('blocked'));
         }
     }
 

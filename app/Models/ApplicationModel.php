@@ -53,7 +53,9 @@ class ApplicationModel extends Model
 
     public function updateMenuCategory($menuCategoryID)
     {
-        return $this->db->table('user_menu_category')->update(['menu_category' => $menuCategoryID['inputMenuCategory']]);
+        return $this->db->table('user_menu_category')
+            ->where('id', $menuCategoryID['menuCategoryID'] ?? $menuCategoryID['id'] ?? 0)
+            ->update(['menu_category' => $menuCategoryID['inputMenuCategory']]);
     }
 
     public function createMenu($dataMenu)
@@ -106,20 +108,35 @@ class ApplicationModel extends Model
     {
         // Try old users table first, then utilizador
         if ($username) {
+            $userFields = $this->db->getFieldNames('users');
+            $select = 'users.*, users.id AS userID, user_role.id AS role_id, user_role.role_name AS role';
+            if (in_array('status', $userFields, true)) {
+                $select .= ', users.status AS status';
+            }
+
             $user = $this->db->table('users')
-                ->select('users.*, users.id AS userID, user_role.id AS role_id, user_role.role_name AS role')
+                ->select($select)
                 ->join('user_role', 'users.role = user_role.id')
-                ->where(['username' => $username])
-                ->get()->getRowArray();
+                ->where('users.username', $username);
+
+            if (in_array('email', $userFields, true)) {
+                $user->orWhere('users.email', $username);
+            }
+
+            $user = $user->get()->getRowArray();
+            if ($user) {
+                $user['_auth_table'] = 'users';
+            }
             
             if (!$user) {
                 $user = $this->db->table('utilizador')
-                    ->select('*, utilizador.id AS userID, papel.id AS role_id, naran_utilizador AS username, xave_secreta AS password, naran_papel AS role')
+                    ->select('*, utilizador.id AS userID, papel.id AS role_id, naran_utilizador AS username, xave_secreta AS password, naran_papel AS role, estadu_kontu AS status')
                     ->join('papel', 'utilizador.papel_id = papel.id')
                     ->where(['naran_utilizador' => $username])
                     ->get()->getRowArray();
                 
                 if ($user) {
+                    $user['_auth_table'] = 'utilizador';
                     $funsionariu = $this->db->table('funsionariu')->where('utilizador_id', $user['userID'])->get()->getRowArray();
                     $user['fullname'] = $funsionariu ? $funsionariu['naran_kompletu'] : $user['username'];
                     $user['foto_perfil'] = $funsionariu ? $funsionariu['foto_perfil'] : null;
@@ -222,6 +239,110 @@ class ApplicationModel extends Model
         return $builder->get()->getResultArray();
     }
 
+    public function countLeaveDays(string $startDate, string $endDate, ?int $year = null): int
+    {
+        $start = new \DateTime($startDate);
+        $end = new \DateTime($endDate);
+
+        if ($year !== null) {
+            $yearStart = new \DateTime($year . '-01-01');
+            $yearEnd = new \DateTime($year . '-12-31');
+            if ($end < $yearStart || $start > $yearEnd) {
+                return 0;
+            }
+            if ($start < $yearStart) {
+                $start = $yearStart;
+            }
+            if ($end > $yearEnd) {
+                $end = $yearEnd;
+            }
+        }
+
+        return ((int) $start->diff($end)->format('%a')) + 1;
+    }
+
+    public function getLeaveBalances($funsionariu_id = false, $year = false): array
+    {
+        $builder = $this->db->table('leave_balances')
+            ->select('leave_balances.*, funsionariu.nid, funsionariu.naran_kompletu')
+            ->join('funsionariu', 'leave_balances.funsionariu_id = funsionariu.id', 'left');
+
+        if ($funsionariu_id) {
+            $builder->where('leave_balances.funsionariu_id', (int) $funsionariu_id);
+        }
+        if ($year) {
+            $builder->where('leave_balances.year', (int) $year);
+        }
+
+        return $builder->orderBy('leave_balances.year', 'DESC')
+            ->orderBy('funsionariu.naran_kompletu', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function ensureLeaveBalance(int $funsionariuId, string $leaveType, int $year, float $entitlement = 12.0): array
+    {
+        $balance = $this->db->table('leave_balances')
+            ->where('funsionariu_id', $funsionariuId)
+            ->where('leave_type', $leaveType)
+            ->where('year', $year)
+            ->get()->getRowArray();
+
+        if ($balance) {
+            return $balance;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $data = [
+            'funsionariu_id' => $funsionariuId,
+            'leave_type' => $leaveType,
+            'year' => $year,
+            'entitlement_days' => $entitlement,
+            'used_days' => 0,
+            'pending_days' => 0,
+            'remaining_days' => $entitlement,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ];
+        $this->db->table('leave_balances')->insert($data);
+        $data['id'] = $this->db->insertID();
+
+        return $data;
+    }
+
+    public function recalculateLeaveBalance(int $funsionariuId, string $leaveType, int $year): void
+    {
+        $balance = $this->ensureLeaveBalance($funsionariuId, $leaveType, $year);
+        $used = 0;
+        $pending = 0;
+
+        $rows = $this->db->table('lisensa')
+            ->where('funsionariu_id', $funsionariuId)
+            ->where('tipu_lisensa', $leaveType)
+            ->whereIn('estadu_lisensa', ['Aprovadu', 'Pendente'])
+            ->where('data_hahu <=', $year . '-12-31')
+            ->where('data_remata >=', $year . '-01-01')
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $row) {
+            $days = $this->countLeaveDays($row['data_hahu'], $row['data_remata'], $year);
+            if ($row['estadu_lisensa'] === 'Aprovadu') {
+                $used += $days;
+            } elseif ($row['estadu_lisensa'] === 'Pendente') {
+                $pending += $days;
+            }
+        }
+
+        $remaining = max(0, (float) $balance['entitlement_days'] - $used - $pending);
+        $this->db->table('leave_balances')->where('id', $balance['id'])->update([
+            'used_days' => $used,
+            'pending_days' => $pending,
+            'remaining_days' => $remaining,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
     public function getSalariu($id = false, $funsionariu_id = false, $fulan = false, $tinan = false) {
         $builder = $this->db->table('salariu')
             ->select('salariu.*, funsionariu.naran_kompletu, funsionariu.nid')
@@ -235,68 +356,48 @@ class ApplicationModel extends Model
         return $builder->get()->getResultArray();
     }
 
-    public function getAvizu($id = false) {
-        // Ensure data_remata column exists
-        if (!$this->db->fieldExists('data_remata', 'avizu')) {
-            $this->db->query("ALTER TABLE avizu ADD COLUMN data_remata DATETIME NULL");
+    public function getSalariuDetalluBySalariuIds(array $salariuIds): array
+    {
+        $salariuIds = array_values(array_unique(array_filter(array_map('intval', $salariuIds))));
+        if (empty($salariuIds)) {
+            return [];
         }
 
-        // Auto-delete expired announcements
-        $this->db->table('avizu')
-            ->where('data_remata !=', NULL)
-            ->where('data_remata <=', date('Y-m-d H:i:s'))
-            ->delete();
+        $rows = $this->db->table('salariu_detallu')
+            ->whereIn('salariu_id', $salariuIds)
+            ->orderBy('tipu', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResultArray();
 
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[(int) $row['salariu_id']][] = $row;
+        }
+
+        return $grouped;
+    }
+
+    public function getAvizu($id = false) {
         if ($id) return $this->db->table('avizu')->where('id', $id)->get()->getRowArray();
-        return $this->db->table('avizu')->orderBy('data_publikasaun', 'DESC')->get()->getResultArray();
+
+        $builder = $this->db->table('avizu');
+        if ($this->db->fieldExists('data_remata', 'avizu')) {
+            $builder->groupStart()
+                ->where('data_remata', null)
+                ->orWhere('data_remata >', date('Y-m-d H:i:s'))
+                ->groupEnd();
+        }
+
+        return $builder->orderBy('data_publikasaun', 'DESC')->get()->getResultArray();
     }
 
     public function getTipuSansaun($id = false) {
-        $this->db->query("CREATE TABLE IF NOT EXISTS tipu_sansaun (
-            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            naran_tipu VARCHAR(100) NOT NULL,
-            kategoria ENUM('Jeral', 'Korta Saláriu', 'Hatun Pozisaun') DEFAULT 'Jeral',
-            valor_dedusaun DECIMAL(10,2) DEFAULT 0.00,
-            created_at DATETIME,
-            updated_at DATETIME
-        )");
-
         if ($id) return $this->db->table('tipu_sansaun')->where('id', $id)->get()->getRowArray();
         return $this->db->table('tipu_sansaun')->get()->getResultArray();
     }
 
     public function getSansaun($id = false, $funsionariu_id = false) {
-        // Ensure sansaun table exists
-        $this->db->query("CREATE TABLE IF NOT EXISTS sansaun (
-            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            funsionariu_id INT(11) UNSIGNED NOT NULL,
-            tipu_sansaun_id INT(11) UNSIGNED NULL,
-            pozisaun_anterior_id INT(11) UNSIGNED NULL,
-            motivu TEXT,
-            data_sansaun DATE,
-            estadu_sansaun ENUM('Ativu', 'Retira', 'Konkluidu') DEFAULT 'Ativu',
-            valor_total DECIMAL(10,2) DEFAULT 0.00,
-            valor_pagadu DECIMAL(10,2) DEFAULT 0.00,
-            created_at DATETIME,
-            updated_at DATETIME
-        )");
-
-        // Ensure new columns exist for existing installations
-        $this->db->query("ALTER TABLE tipu_sansaun MODIFY COLUMN kategoria ENUM('Jeral', 'Korta Saláriu', 'Hatun Pozisaun') DEFAULT 'Jeral'");
-        
-        if (!$this->db->fieldExists('estadu_sansaun', 'sansaun')) {
-            $this->db->query("ALTER TABLE sansaun ADD COLUMN estadu_sansaun ENUM('Ativu', 'Retira', 'Konkluidu') DEFAULT 'Ativu'");
-        }
-        if (!$this->db->fieldExists('valor_total', 'sansaun')) {
-            $this->db->query("ALTER TABLE sansaun ADD COLUMN valor_total DECIMAL(10,2) DEFAULT 0.00");
-        }
-        if (!$this->db->fieldExists('valor_pagadu', 'sansaun')) {
-            $this->db->query("ALTER TABLE sansaun ADD COLUMN valor_pagadu DECIMAL(10,2) DEFAULT 0.00");
-        }
-        if (!$this->db->fieldExists('pozisaun_anterior_id', 'sansaun')) {
-            $this->db->query("ALTER TABLE sansaun ADD COLUMN pozisaun_anterior_id INT(11) UNSIGNED NULL");
-        }
-
         $builder = $this->db->table('sansaun')
             ->select('sansaun.*, funsionariu.naran_kompletu, funsionariu.nid, tipu_sansaun.naran_tipu, tipu_sansaun.kategoria, tipu_sansaun.valor_dedusaun AS tipu_valor')
             ->join('funsionariu', 'sansaun.funsionariu_id = funsionariu.id')
@@ -309,27 +410,6 @@ class ApplicationModel extends Model
     }
 
     public function getAttendanceSettings() {
-        // Ensure table exists (Relief for migration issues)
-        $this->db->query("CREATE TABLE IF NOT EXISTS attendance_settings (
-            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            tama_hahu TIME DEFAULT '08:00:00',
-            tama_remata TIME DEFAULT '09:00:00',
-            sai_hahu TIME DEFAULT '17:00:00',
-            sai_remata TIME DEFAULT '18:00:00',
-            toleransia_minutu INT(11) DEFAULT 15,
-            sabadu TINYINT(1) DEFAULT 0,
-            domingu TINYINT(1) DEFAULT 0,
-            updated_at DATETIME NULL
-        )");
-
-        // Ensure columns exist for existing installations
-        if (!$this->db->fieldExists('sabadu', 'attendance_settings')) {
-            $this->db->query("ALTER TABLE attendance_settings ADD COLUMN sabadu TINYINT(1) DEFAULT 0");
-        }
-        if (!$this->db->fieldExists('domingu', 'attendance_settings')) {
-            $this->db->query("ALTER TABLE attendance_settings ADD COLUMN domingu TINYINT(1) DEFAULT 0");
-        }
-
         $check = $this->db->table('attendance_settings')->get()->getRowArray();
         if (!$check) {
             $this->db->table('attendance_settings')->insert([
@@ -589,25 +669,18 @@ class ApplicationModel extends Model
         return $this->db->table('user_access')->delete(['role_id' => $dataAccess['roleID'], 'submenu_id' => $dataAccess['submenuID']]);
     }
     public function getSubsidiu($id = false) {
-        // Ensure table exists
-        $this->db->query("CREATE TABLE IF NOT EXISTS subsidiu (
-            id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            naran_subsidiu VARCHAR(100) NOT NULL,
-            valor_padrao DECIMAL(10,2) DEFAULT 0.00,
-            deskrisaun TEXT,
-            created_at DATETIME,
-            updated_at DATETIME
-        )");
-
         if ($id) return $this->db->table('subsidiu')->where('id', $id)->get()->getRowArray();
         return $this->db->table('subsidiu')->get()->getResultArray();
     }
 
     public function getFunsionariuPaymentStatus($fulan, $tinan) {
+        $fulan = (int) $fulan;
+        $tinan = (int) $tinan;
+
         $data = $this->db->table('funsionariu')
             ->select('funsionariu.id, funsionariu.nid, funsionariu.naran_kompletu, pozisaun.naran_pozisaun, pozisaun.salariu_baziku, salariu.id AS salariu_id, salariu.estadu_pagamentu')
             ->join('pozisaun', 'funsionariu.pozisaun_id = pozisaun.id')
-            ->join('salariu', 'funsionariu.id = salariu.funsionariu_id AND salariu.fulan = '.$fulan.' AND salariu.tinan = '.$tinan, 'left')
+            ->join('salariu', 'funsionariu.id = salariu.funsionariu_id AND salariu.fulan = ' . $this->db->escape($fulan) . ' AND salariu.tinan = ' . $this->db->escape($tinan), 'left')
             ->get()->getResultArray();
 
         // Calculate Sanction Deductions for each employee (Active deductions that haven't been fully paid)

@@ -5,14 +5,14 @@
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -43,6 +43,7 @@
                             Horáriu Tama: <?= date('H:i', strtotime($hahu_tama)) ?> - <?= date('H:i', strtotime($remata_tama)) ?>
                         </div>
                         <form action="<?= base_url('funsionariu/prezensa/tama') ?>" method="post">
+                    <?= csrf_field() ?>
                             <button type="submit" class="btn btn-primary btn-lg w-100 py-4" <?= !$tama_active ? 'disabled' : '' ?>>
                                 <i class="align-middle me-2" data-feather="log-in"></i> TAMA (Clock In)
                             </button>
@@ -59,6 +60,7 @@
                             Horáriu Sai: <?= date('H:i', strtotime($hahu_sai)) ?> - <?= date('H:i', strtotime($remata_sai)) ?>
                         </div>
                         <form action="<?= base_url('funsionariu/prezensa/sai') ?>" method="post">
+                    <?= csrf_field() ?>
                             <button type="submit" class="btn btn-danger btn-lg w-100 py-4" <?= !$sai_active ? 'disabled' : '' ?>>
                                 <i class="align-middle me-2" data-feather="log-out"></i> SAI (Clock Out)
                             </button>

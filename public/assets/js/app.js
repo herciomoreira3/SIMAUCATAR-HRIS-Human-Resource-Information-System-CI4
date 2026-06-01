@@ -65841,7 +65841,7 @@
           var t = document.createDocumentFragment(),
             e = this._createHTLMElement({ tagName: "div", className: "notyf" });
           t.appendChild(e),
-            document.body.appendChild(t),
+            (document.body || document.documentElement).appendChild(t),
             (this.container = e),
             (this.animationEndEventName = this._getAnimationEndEventName()),
             this._createA11yContainer();
@@ -66012,7 +66012,7 @@
               (t.style.position = "absolute"),
               (t.style.width = "1px"),
               (t.style.outline = "0"),
-              document.body.appendChild(t),
+              (document.body || document.documentElement).appendChild(t),
               (this.a11yContainer = t);
           }),
           (t.prototype._announce = function (t) {
@@ -66129,32 +66129,38 @@
           t
         );
       })();
-    window.notyf = new Il({
-      duration: 5e3,
-      position: { x: "right", y: "top" },
-      types: [
-        {
-          type: "default",
-          backgroundColor: "#3B7DDD",
-          icon: { className: "notyf__icon--success", tagName: "i" },
-        },
-        {
-          type: "success",
-          backgroundColor: "#28a745",
-          icon: { className: "notyf__icon--success", tagName: "i" },
-        },
-        {
-          type: "warning",
-          backgroundColor: "#ffc107",
-          icon: { className: "notyf__icon--error", tagName: "i" },
-        },
-        {
-          type: "danger",
-          backgroundColor: "#dc3545",
-          icon: { className: "notyf__icon--error", tagName: "i" },
-        },
-      ],
-    });
+    var initNotyfSafely = function () {
+      window.notyf ||
+        (window.notyf = new Il({
+          duration: 5e3,
+          position: { x: "right", y: "top" },
+          types: [
+            {
+              type: "default",
+              backgroundColor: "#3B7DDD",
+              icon: { className: "notyf__icon--success", tagName: "i" },
+            },
+            {
+              type: "success",
+              backgroundColor: "#28a745",
+              icon: { className: "notyf__icon--success", tagName: "i" },
+            },
+            {
+              type: "warning",
+              backgroundColor: "#ffc107",
+              icon: { className: "notyf__icon--error", tagName: "i" },
+            },
+            {
+              type: "danger",
+              backgroundColor: "#dc3545",
+              icon: { className: "notyf__icon--error", tagName: "i" },
+            },
+          ],
+        }));
+    };
+    "loading" === document.readyState
+      ? document.addEventListener("DOMContentLoaded", initNotyfSafely)
+      : initNotyfSafely();
     var jl = i(140),
       Nl = i.n(jl);
     (window.ApexCharts = Nl.a),

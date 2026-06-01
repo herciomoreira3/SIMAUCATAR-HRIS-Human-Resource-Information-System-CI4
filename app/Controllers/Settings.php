@@ -11,10 +11,10 @@ class Settings extends BaseController
     {
         $createRole = $this->ApplicationModel->createRole($this->request->getPost(null, FILTER_UNSAFE_RAW));
         if ($createRole) {
-            session()->setFlashdata('notif_success', '<b>Successfully created role</b> ');
+            session()->setFlashdata('notif_success', '<b>Papel kria ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to create role</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege kria papel.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -23,10 +23,10 @@ class Settings extends BaseController
     {
         $updateRole = $this->ApplicationModel->updateRole($this->request->getPost(null, FILTER_UNSAFE_RAW));
         if ($updateRole) {
-            session()->setFlashdata('notif_success', '<b>Successfully update role</b> ');
+            session()->setFlashdata('notif_success', '<b>Papel atualiza ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to update role</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege atualiza papel.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -38,10 +38,10 @@ class Settings extends BaseController
         }
         $deleteRole = $this->ApplicationModel->deleteRole($roleID);
         if ($deleteRole) {
-            session()->setFlashdata('notif_success', '<b>Successfully deleted role</b> ');
+            session()->setFlashdata('notif_success', '<b>Papel hamos ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to delete role</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege hamos papel.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -49,15 +49,15 @@ class Settings extends BaseController
     public function createUser()
     {
         if (!$this->validate(['inputUsername' => ['rules' => 'is_unique[users.username]']])) {
-            session()->setFlashdata('notif_error', '<b>Failed to add new user</b> The user already exists! ');
+            session()->setFlashdata('notif_error', '<b>La konsege aumenta utilizador foun.</b> Utilizador ne\'e iha ona! ');
             return redirect()->to(base_url('users'));
         }
         $createUser = $this->ApplicationModel->createUser($this->request->getPost(null, FILTER_UNSAFE_RAW));
         if ($createUser) {
-            session()->setFlashdata('notif_success', '<b>Successfully added new user</b> ');
+            session()->setFlashdata('notif_success', '<b>Utilizador foun aumenta ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to add new user</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege aumenta utilizador foun.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -65,7 +65,7 @@ class Settings extends BaseController
     public function users()
     {
         $data = array_merge($this->data, [
-            'title'     => 'Users Page',
+            'title'     => 'Pajina Utilizador',
             'Users'     => $this->ApplicationModel->getUser(),
             'UserRole'  => $this->ApplicationModel->getUserRole()
         ]);
@@ -76,10 +76,10 @@ class Settings extends BaseController
     {
         $updateUser = $this->ApplicationModel->updateUser($this->request->getPost(null, FILTER_UNSAFE_RAW));
         if ($updateUser) {
-            session()->setFlashdata('notif_success', '<b>Successfully update user data</b> ');
+            session()->setFlashdata('notif_success', '<b>Dadus utilizador atualiza ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to update user data</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege atualiza dadus utilizador.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -91,10 +91,10 @@ class Settings extends BaseController
         }
         $deleteUser = $this->ApplicationModel->deleteUser($userID);
         if ($deleteUser) {
-            session()->setFlashdata('notif_success', '<b>Successfully delete user</b> ');
+            session()->setFlashdata('notif_success', '<b>Utilizador hamos ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to delete user</b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege hamos utilizador.</b> ');
             return redirect()->to(base_url('users'));
         }
     }
@@ -107,7 +107,7 @@ class Settings extends BaseController
             return redirect()->to(base_url('users'));
         }
         $data = array_merge($this->data, [
-            'title'             => 'Role Access',
+            'title'             => 'Asesu Papel',
             'MenuCategories'    => $this->ApplicationModel->getMenuCategory(),
             'Menus'             => $this->ApplicationModel->getMenu(),
             'Submenus'          => $this->ApplicationModel->getSubmenu(),
@@ -150,7 +150,7 @@ class Settings extends BaseController
     public function menuManagement()
     {
         $data = array_merge($this->data, [
-            'title'             => 'Menu Management',
+            'title'             => 'Jestaun Menu',
             'MenuCategories'    => $this->ApplicationModel->getMenuCategory(),
             'Menus'             => $this->ApplicationModel->getMenu(),
             'Submenus'          => $this->ApplicationModel->getSubmenu(),
@@ -165,8 +165,8 @@ class Settings extends BaseController
             'inputMenuCategory' => [
                 'rules'     => 'required|is_unique[user_menu_category.menu_category]',
                 'errors'    => [
-                    'required'  => 'Menu Category must be required.',
-                    'is_unique' => 'Menu Category cannot be same.'
+                    'required'  => 'Kategoria menu obrigatoriu.',
+                    'is_unique' => 'Kategoria menu labele hanesan.'
                 ]
             ]
         ])) {
@@ -174,10 +174,10 @@ class Settings extends BaseController
         }
         $createMenuCategory = $this->ApplicationModel->createMenuCategory($this->request->getPost(null));
         if ($createMenuCategory) {
-            session()->setFlashdata('notif_success', '<b>Successfully create menu category</b>');
+            session()->setFlashdata('notif_success', '<b>Kategoria menu kria ona.</b>');
             return redirect()->to(base_url('menu-management'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to create menu category</b>');
+            session()->setFlashdata('notif_error', '<b>La konsege kria kategoria menu.</b>');
             return redirect()->to(base_url('menu-management'));
         }
     }
@@ -187,8 +187,8 @@ class Settings extends BaseController
             'inputMenuCategory' => [
                 'rules'     => 'required|is_unique[user_menu_category.menu_category]',
                 'errors'    => [
-                    'required'  => 'Menu Category must be required.',
-                    'is_unique' => 'Menu Category cannot be same'
+                    'required'  => 'Kategoria menu obrigatoriu.',
+                    'is_unique' => 'Kategoria menu labele hanesan.'
                 ]
             ]
         ])) {
@@ -196,10 +196,10 @@ class Settings extends BaseController
         }
         $updateMenuCategory = $this->ApplicationModel->updateMenuCategory($this->request->getPost(null));
         if ($updateMenuCategory) {
-            session()->setFlashdata('notif_success', '<b>Successfully update Menu Category </b> ');
+            session()->setFlashdata('notif_success', '<b>Kategoria menu atualiza ona.</b> ');
             return redirect()->to(base_url('menu-management'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to update Menu Category </b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege atualiza kategoria menu.</b> ');
             return redirect()->to(base_url('menu-management'));
         }
     }
@@ -210,53 +210,41 @@ class Settings extends BaseController
             'inputMenuCategory2' => [
                 'rules'     => 'required',
                 'errors'    => [
-                    'required'  => 'Menu Category must be required.'
+                    'required'  => 'Kategoria menu obrigatoriu.'
                 ]
             ],
             'inputMenuTitle' => [
                 'rules'     => 'required|is_unique[user_menu.title]',
                 'errors'    => [
-                    'required'  => 'Menu Title must be required.',
-                    'is_unique' => 'Menu Title cannot be same'
+                    'required'  => 'Titulu menu obrigatoriu.',
+                    'is_unique' => 'Titulu menu labele hanesan.'
                 ]
             ],
             'inputMenuURL' => [
                 'rules'     => 'required|is_unique[user_menu.url]',
                 'errors'    => [
-                    'required'  => 'Menu Url must be required.',
-                    'is_unique' => 'Menu Url cannot be same'
+                    'required'  => 'URL menu obrigatoriu.',
+                    'is_unique' => 'URL menu labele hanesan.'
                 ]
             ],
             'inputMenuIcon' => [
                 'rules'     => 'required',
                 'errors'    => [
-                    'required'  => 'Menu Icon must be required.'
+                    'required'  => 'Ikone menu obrigatoriu.'
                 ]
             ]
         ])) {
             return redirect()->to('menu-management')->withInput();
         }
 
-        $createController   = $this->_createBlankPageController();
-        $createView         = $this->_createBlankPageView();
-
-        if ($createController && $createView) {
-            $createMenu = $this->ApplicationModel->createMenu($this->request->getPost(null));
-            if ($createMenu) {
-                $menuTitle          = $this->request->getPost('inputMenuURL');
-                $controllerName     = url_title(ucwords($menuTitle), '', false);
-                $route              = '$routes->get(\'' . $menuTitle . '\',\'' . $controllerName . '::index\');';
-                file_put_contents(APPPATH . 'Config/Routes.php', $route . PHP_EOL, FILE_APPEND | LOCK_EX);
-                session()->setFlashdata('notif_success', '<b>Successfully create menu </b> ');
-                return redirect()->to(base_url('menu-management'));
-            } else {
-                session()->setFlashdata('notif_error', '<b>Failed to create menu </b> ');
-                return redirect()->to(base_url('menu-management'));
-            }
-        } else {
-            session()->setFlashdata('notif_error', "<b>Failed to create menu </b>Cannot create file ");
+        $createMenu = $this->ApplicationModel->createMenu($this->request->getPost(null));
+        if ($createMenu) {
+            session()->setFlashdata('notif_success', '<b>Metadata menu kria ona.</b> Aumenta route/controller liu husi code no migration.');
             return redirect()->to(base_url('menu-management'));
         }
+
+        session()->setFlashdata('notif_error', '<b>La konsege kria menu.</b> ');
+        return redirect()->to(base_url('menu-management'));
     }
 
     public function createSubMenu()
@@ -265,21 +253,21 @@ class Settings extends BaseController
             'inputMenu' => [
                 'rules'     => 'required',
                 'errors'    => [
-                    'required'  => 'Menu must be required.'
+                    'required'  => 'Menu obrigatoriu.'
                 ]
             ],
             'inputSubmenuTitle' => [
                 'rules'     => 'required|is_unique[user_submenu.title]',
                 'errors'    => [
-                    'required'  => 'Submenu Title must be required.',
-                    'is_unique' => 'Submenu Title cannot be same'
+                    'required'  => 'Titulu submenu obrigatoriu.',
+                    'is_unique' => 'Titulu submenu labele hanesan.'
                 ]
             ],
             'inputSubmenuURL' => [
                 'rules'     => 'required|is_unique[user_submenu.url]',
                 'errors'    => [
-                    'required'  => 'Submenu Url must be required.',
-                    'is_unique' => 'Submenu Url cannot be same'
+                    'required'  => 'URL submenu obrigatoriu.',
+                    'is_unique' => 'URL submenu labele hanesan.'
                 ]
             ],
         ])) {
@@ -288,10 +276,10 @@ class Settings extends BaseController
         }
         $createSubMenu = $this->ApplicationModel->createSubMenu($this->request->getPost(null));
         if ($createSubMenu) {
-            session()->setFlashdata('notif_success', '<b>Successfully create submenu </b> ');
+            session()->setFlashdata('notif_success', '<b>Submenu kria ona.</b> ');
             return redirect()->to(base_url('menu-management'));
         } else {
-            session()->setFlashdata('notif_error', '<b>Failed to create submenu </b> ');
+            session()->setFlashdata('notif_error', '<b>La konsege kria submenu.</b> ');
             return redirect()->to(base_url('menu-management'));
         }
     }

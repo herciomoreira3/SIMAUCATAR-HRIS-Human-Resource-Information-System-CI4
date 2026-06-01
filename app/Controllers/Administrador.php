@@ -6,17 +6,75 @@ use App\Controllers\BaseController;
 
 class Administrador extends BaseController
 {
+    private function postText(string $key): string
+    {
+        return trim((string) $this->request->getPost($key));
+    }
+
+    private function backWithError(string $message)
+    {
+        session()->setFlashdata('error', $message);
+        return redirect()->back()->withInput();
+    }
+
+    private function valueExists(string $table, string $column, string $value, ?int $excludeId = null): bool
+    {
+        $builder = $this->db->table($table)->where($column, $value);
+        if ($excludeId !== null) {
+            $builder->where('id !=', $excludeId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    private function findOrCreateId(string $table, string $column, string $value, array $defaults = []): int
+    {
+        $value = trim($value);
+        $row = $this->db->table($table)->where($column, $value)->get()->getRowArray();
+        if ($row) {
+            return (int) $row['id'];
+        }
+
+        $this->db->table($table)->insert(array_merge($defaults, [$column => $value]));
+        return (int) $this->db->insertID();
+    }
+
+    private function getOrCreatePayrollPeriod(int $fulan, int $tinan): array
+    {
+        $period = $this->db->table('payroll_periods')
+            ->where('fulan', $fulan)
+            ->where('tinan', $tinan)
+            ->get()->getRowArray();
+
+        if ($period) {
+            return $period;
+        }
+
+        $this->db->table('payroll_periods')->insert([
+            'fulan' => $fulan,
+            'tinan' => $tinan,
+            'status' => 'Draft',
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return $this->db->table('payroll_periods')->where('id', $this->db->insertID())->get()->getRowArray();
+    }
+
     public function dashboard()
     {
         // Chart 1: Attendance Trends (Last 15 days)
         $labels = [];
         $prezente = [];
+        $tardi = [];
         $falta = [];
+        $lisensa = [];
         for ($i = 14; $i >= 0; $i--) {
             $date = date('Y-m-d', strtotime("-$i days"));
             $labels[] = date('d M', strtotime($date));
-            $prezente[] = $this->db->table('prezensa')->where('data_prezensa', $date)->whereIn('estadu_prezensa', ['Prezente'])->countAllResults();
-            $falta[] = $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
+            $prezente[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Prezente')->countAllResults();
+            $tardi[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Tardi')->countAllResults();
+            $falta[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
+            $lisensa[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Lisensa')->countAllResults();
         }
 
         // Chart 2: Department Composition
@@ -27,16 +85,18 @@ class Administrador extends BaseController
             ->get()->getResultArray();
 
         $data = array_merge($this->data, [
-            'title' => 'Dashboard Administrador',
+            'title' => 'Painel Administrador',
             'total_funsionariu' => count($this->ApplicationModel->getFunsionariu()),
             'total_prezensa_ohin' => count($this->ApplicationModel->getPrezensa(data: date('Y-m-d'))),
             'pendente_lisensa' => count($this->ApplicationModel->getLisensa(estadu: 'Pendente')),
             'avizu_ikus' => $this->ApplicationModel->getAvizu(),
             'sansaun_ikus' => $this->ApplicationModel->getSansaun(),
-            'chart_labels' => json_encode($labels),
+            'chart_labels' => json_encode($labels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
             'chart_prezente' => json_encode($prezente),
+            'chart_tardi' => json_encode($tardi),
             'chart_falta' => json_encode($falta),
-            'dept_comp' => json_encode($dept_comp),
+            'chart_lisensa' => json_encode($lisensa),
+            'dept_comp' => json_encode($dept_comp, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
         ]);
         return view('pages/administrador/dashboard', $data);
     }
@@ -54,7 +114,14 @@ class Administrador extends BaseController
 
     public function createDepartamentu()
     {
-        $naran = $this->request->getVar('naran_departamentu');
+        $naran = $this->postText('naran_departamentu');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran departamentu tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('departamentu', 'naran_departamentu', $naran)) {
+            return $this->backWithError('Departamentu ne\'e iha ona.');
+        }
+
         $this->ApplicationModel->saveData('departamentu', ['naran_departamentu' => $naran]);
         session()->setFlashdata('success', 'Departamentu foun aumenta ona!');
         return redirect()->back();
@@ -62,7 +129,15 @@ class Administrador extends BaseController
 
     public function updateDepartamentu($id)
     {
-        $naran = $this->request->getVar('naran_departamentu');
+        $id = (int) $id;
+        $naran = $this->postText('naran_departamentu');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran departamentu tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('departamentu', 'naran_departamentu', $naran, $id)) {
+            return $this->backWithError('Departamentu ne\'e iha ona.');
+        }
+
         $this->ApplicationModel->updateData('departamentu', ['naran_departamentu' => $naran], ['id' => $id]);
         session()->setFlashdata('success', 'Departamentu atualiza ona!');
         return redirect()->back();
@@ -92,11 +167,21 @@ class Administrador extends BaseController
 
     public function createPozisaun()
     {
-        $naran = $this->request->getVar('naran_pozisaun');
-        $salariu = $this->request->getVar('salariu_baziku');
+        $naran = $this->postText('naran_pozisaun');
+        $salariu = $this->postText('salariu_baziku');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran pozisaun tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('pozisaun', 'naran_pozisaun', $naran)) {
+            return $this->backWithError('Pozisaun ne\'e iha ona.');
+        }
+        if (!is_numeric($salariu) || (float) $salariu < 0) {
+            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
+        }
+
         $this->ApplicationModel->saveData('pozisaun', [
             'naran_pozisaun' => $naran,
-            'salariu_baziku' => $salariu
+            'salariu_baziku' => (float) $salariu
         ]);
         session()->setFlashdata('success', 'Pozisaun foun aumenta ona!');
         return redirect()->back();
@@ -104,11 +189,22 @@ class Administrador extends BaseController
 
     public function updatePozisaun($id)
     {
-        $naran = $this->request->getVar('naran_pozisaun');
-        $salariu = $this->request->getVar('salariu_baziku');
+        $id = (int) $id;
+        $naran = $this->postText('naran_pozisaun');
+        $salariu = $this->postText('salariu_baziku');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran pozisaun tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('pozisaun', 'naran_pozisaun', $naran, $id)) {
+            return $this->backWithError('Pozisaun ne\'e iha ona.');
+        }
+        if (!is_numeric($salariu) || (float) $salariu < 0) {
+            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
+        }
+
         $this->ApplicationModel->updateData('pozisaun', [
             'naran_pozisaun' => $naran,
-            'salariu_baziku' => $salariu
+            'salariu_baziku' => (float) $salariu
         ], ['id' => $id]);
         session()->setFlashdata('success', 'Pozisaun atualiza ona!');
         return redirect()->back();
@@ -138,7 +234,14 @@ class Administrador extends BaseController
 
     public function createKategoria()
     {
-        $naran = $this->request->getVar('naran_kategoria');
+        $naran = $this->postText('naran_kategoria');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran kategoria tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('kategoria', 'naran_kategoria', $naran)) {
+            return $this->backWithError('Kategoria ne\'e iha ona.');
+        }
+
         $this->ApplicationModel->saveData('kategoria', ['naran_kategoria' => $naran]);
         session()->setFlashdata('success', 'Kategoria foun aumenta ona!');
         return redirect()->back();
@@ -146,7 +249,15 @@ class Administrador extends BaseController
 
     public function updateKategoria($id)
     {
-        $naran = $this->request->getVar('naran_kategoria');
+        $id = (int) $id;
+        $naran = $this->postText('naran_kategoria');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran kategoria tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('kategoria', 'naran_kategoria', $naran, $id)) {
+            return $this->backWithError('Kategoria ne\'e iha ona.');
+        }
+
         $this->ApplicationModel->updateData('kategoria', ['naran_kategoria' => $naran], ['id' => $id]);
         session()->setFlashdata('success', 'Kategoria atualiza ona!');
         return redirect()->back();
@@ -181,12 +292,27 @@ class Administrador extends BaseController
 
     public function saveFunsionariu()
     {
+        if (!$this->validate([
+            'nid' => 'required|max_length[50]|is_unique[funsionariu.nid]',
+            'naran_kompletu' => 'required|max_length[150]',
+            'username' => 'required|max_length[255]|is_unique[users.username]',
+            'password' => 'required|min_length[8]',
+            'foto_perfil' => 'if_exist|is_image[foto_perfil]|mime_in[foto_perfil,image/jpg,image/jpeg,image/png]|max_size[foto_perfil,2048]',
+        ])) {
+            session()->setFlashdata('error', implode(' ', $this->validator->getErrors()));
+            return redirect()->back()->withInput();
+        }
+
+        $employeeRole = $this->db->table('user_role')->where('role_name', 'funsionariu')->get()->getRowArray();
+        $roleId = $employeeRole['id'] ?? $this->request->getVar('papel_id');
+
         // 1. Insert to users first
         $userData = [
             'fullname'         => $this->request->getVar('naran_kompletu'),
             'username'         => $this->request->getVar('username'),
             'password'         => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
-            'role'             => $this->request->getVar('papel_id'),
+            'role'             => $roleId,
+            'status'           => 'active',
             'created_at'       => date('Y-m-d H:i:s'),
         ];
         $this->db->table('users')->insert($userData);
@@ -214,7 +340,7 @@ class Administrador extends BaseController
         $file = $this->request->getFile('foto_perfil');
         if ($file && $file->isValid() && !$file->hasMoved()) {
             $newName = $file->getRandomName();
-            $file->move('uploads/perfil', $newName);
+            $file->move(FCPATH . 'uploads/perfil', $newName);
             $funsionariuData['foto_perfil'] = $newName;
         }
 
@@ -223,8 +349,121 @@ class Administrador extends BaseController
         return redirect()->to(base_url('administrador/funsionariu'));
     }
 
+    public function downloadFunsionariuTemplate()
+    {
+        $csv = "nid,naran_kompletu,seksu,fatin_moris,data_moris,hela_fatin,estadu_sivil,nu_telefone,departamentu,pozisaun,kategoria,data_hahu_servisu,username,password\n";
+        $csv .= "2026001,Exemplo Funsionariu,Mane,Maucatar,1995-01-01,Maucatar,Solteiru,77000000,Administrasaun,Staff,Kategoria A,2026-01-01,2026001,Maucatar123\n";
+
+        return $this->response->download('template_import_funsionariu.csv', $csv);
+    }
+
+    public function importFunsionariu()
+    {
+        if (!$this->validate([
+            'file_import' => 'uploaded[file_import]|max_size[file_import,4096]|ext_in[file_import,csv,txt]|mime_in[file_import,text/plain,text/csv,application/vnd.ms-excel,application/octet-stream]',
+        ])) {
+            return $this->backWithError(implode(' ', $this->validator->getErrors()));
+        }
+
+        $file = $this->request->getFile('file_import');
+        $handle = fopen($file->getTempName(), 'r');
+        if (!$handle) {
+            return $this->backWithError('Fail importasaun la bele lee.');
+        }
+
+        $headers = fgetcsv($handle);
+        if (!$headers) {
+            fclose($handle);
+            return $this->backWithError('Header CSV la loos.');
+        }
+
+        $headers = array_map(static fn($h) => trim(strtolower($h)), $headers);
+        $created = 0;
+        $skipped = 0;
+        $employeeRole = $this->db->table('user_role')->where('role_name', 'funsionariu')->get()->getRowArray();
+        $roleId = $employeeRole['id'] ?? 3;
+
+        $this->db->transBegin();
+        while (($row = fgetcsv($handle)) !== false) {
+            $data = array_combine($headers, array_pad($row, count($headers), ''));
+            if (!$data || empty($data['nid']) || empty($data['naran_kompletu']) || empty($data['username'])) {
+                $skipped++;
+                continue;
+            }
+
+            $nid = trim($data['nid']);
+            $username = trim($data['username']);
+            $exists = $this->db->table('funsionariu')->where('nid', $nid)->countAllResults() > 0
+                || $this->db->table('users')->where('username', $username)->countAllResults() > 0;
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            $departamentuId = $this->findOrCreateId('departamentu', 'naran_departamentu', $data['departamentu'] ?: 'Administrasaun');
+            $pozisaunId = $this->findOrCreateId('pozisaun', 'naran_pozisaun', $data['pozisaun'] ?: 'Staff', ['salariu_baziku' => 0]);
+            $kategoriaId = $this->findOrCreateId('kategoria', 'naran_kategoria', $data['kategoria'] ?: 'Kategoria A');
+
+            $this->db->table('users')->insert([
+                'fullname' => trim($data['naran_kompletu']),
+                'username' => $username,
+                'password' => password_hash($data['password'] ?: 'Maucatar123', PASSWORD_DEFAULT),
+                'role' => $roleId,
+                'status' => 'active',
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $userId = $this->db->insertID();
+
+            $this->db->table('funsionariu')->insert([
+                'utilizador_id' => $userId,
+                'nid' => $nid,
+                'naran_kompletu' => trim($data['naran_kompletu']),
+                'seksu' => $data['seksu'] ?: 'Mane',
+                'fatin_moris' => $data['fatin_moris'] ?? null,
+                'data_moris' => $data['data_moris'] ?: null,
+                'hela_fatin' => $data['hela_fatin'] ?? null,
+                'estadu_sivil' => $data['estadu_sivil'] ?? null,
+                'nu_telefone' => $data['nu_telefone'] ?? null,
+                'departamentu_id' => $departamentuId,
+                'pozisaun_id' => $pozisaunId,
+                'kategoria_id' => $kategoriaId,
+                'data_hahu_servisu' => $data['data_hahu_servisu'] ?: null,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $created++;
+        }
+        fclose($handle);
+
+        if ($this->db->transStatus() === false) {
+            $this->db->transRollback();
+            return $this->backWithError('Importasaun falla.');
+        }
+
+        $this->db->transCommit();
+        $this->logAudit('import_employees', 'funsionariu', null, null, ['created' => $created, 'skipped' => $skipped]);
+        session()->setFlashdata('success', "Importasaun remata. Kria: $created, liu hela: $skipped.");
+        return redirect()->back();
+    }
+
     public function updateFunsionariu($id)
     {
+        $funsionariu = $this->ApplicationModel->getFunsionariu($id);
+        if (!$funsionariu) {
+            session()->setFlashdata('error', 'Dadus la konese!');
+            return redirect()->back();
+        }
+
+        if (!$this->validate([
+            'nid' => "required|max_length[50]|is_unique[funsionariu.nid,id,{$id}]",
+            'naran_kompletu' => 'required|max_length[150]',
+            'username' => "required|max_length[255]|is_unique[users.username,id,{$funsionariu['utilizador_id']}]",
+            'password' => 'permit_empty|min_length[8]',
+            'foto_perfil' => 'if_exist|is_image[foto_perfil]|mime_in[foto_perfil,image/jpg,image/jpeg,image/png]|max_size[foto_perfil,2048]',
+        ])) {
+            session()->setFlashdata('error', implode(' ', $this->validator->getErrors()));
+            return redirect()->back()->withInput();
+        }
+
         $funsionariuData = [
             'nid'               => $this->request->getVar('nid'),
             'naran_kompletu'    => $this->request->getVar('naran_kompletu'),
@@ -245,19 +484,26 @@ class Administrador extends BaseController
         $file = $this->request->getFile('foto_perfil');
         if ($file && $file->isValid() && !$file->hasMoved()) {
             $newName = $file->getRandomName();
-            $file->move('uploads/perfil', $newName);
+            $file->move(FCPATH . 'uploads/perfil', $newName);
+            if (!empty($funsionariu['foto_perfil'])) {
+                $oldPath = FCPATH . 'uploads/perfil/' . $funsionariu['foto_perfil'];
+                if (is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
             $funsionariuData['foto_perfil'] = $newName;
         }
 
         $this->ApplicationModel->updateData('funsionariu', $funsionariuData, ['id' => $id]);
 
         // Update user account
-        $funsionariu = $this->ApplicationModel->getFunsionariu($id);
         if ($funsionariu) {
+            $employeeRole = $this->db->table('user_role')->where('role_name', 'funsionariu')->get()->getRowArray();
             $userData = [
                 'fullname'   => $this->request->getVar('naran_kompletu'),
                 'username'   => $this->request->getVar('username'),
-                'role'       => $this->request->getVar('papel_id'),
+                'role'       => $employeeRole['id'] ?? $this->request->getVar('papel_id'),
+                'status'     => 'active',
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
             $password = $this->request->getVar('password');
@@ -269,6 +515,31 @@ class Administrador extends BaseController
 
         session()->setFlashdata('success', 'Dadus funsionáriu atualiza ona!');
         return redirect()->to(base_url('administrador/funsionariu'));
+    }
+
+    public function resetFunsionariuPassword($id)
+    {
+        $funsionariu = $this->ApplicationModel->getFunsionariu((int) $id);
+        if (!$funsionariu || empty($funsionariu['utilizador_id'])) {
+            return $this->backWithError('Funsionariu ka akun utilizador la konese.');
+        }
+
+        $password = (string) $this->request->getPost('password_baru');
+        if (strlen($password) < 8 || $password !== (string) $this->request->getPost('password_konfirma')) {
+            return $this->backWithError('Senha foun minimal 8 karakter no konfirmasaun tenke hanesan.');
+        }
+
+        $this->ApplicationModel->updateData('users', [
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'failed_login_count' => 0,
+            'locked_until' => null,
+            'password_changed_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $funsionariu['utilizador_id']]);
+
+        $this->logAudit('admin_reset_employee_password', 'users', $funsionariu['utilizador_id']);
+        session()->setFlashdata('success', 'Senha funsionariu troka ona.');
+        return redirect()->back();
     }
 
     public function deleteFunsionariu($id)
@@ -326,6 +597,61 @@ class Administrador extends BaseController
         return redirect()->back();
     }
 
+    public function feriadu()
+    {
+        $holidays = $this->db->table('holidays')
+            ->orderBy('holiday_date', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        return view('pages/administrador/feriadu', array_merge($this->data, [
+            'title' => 'Jestaun Feriadu',
+            'holidays' => $holidays,
+        ]));
+    }
+
+    public function createFeriadu()
+    {
+        if (!$this->validate([
+            'holiday_date' => 'required|valid_date[Y-m-d]',
+            'title' => 'required|max_length[150]',
+            'description' => 'permit_empty|max_length[1000]',
+        ])) {
+            return $this->backWithError(implode(' ', $this->validator->getErrors()));
+        }
+
+        $date = $this->request->getPost('holiday_date');
+        if ($this->db->table('holidays')->where('holiday_date', $date)->countAllResults() > 0) {
+            return $this->backWithError('Feriadu iha data nee iha ona.');
+        }
+
+        $data = [
+            'holiday_date' => $date,
+            'title' => $this->postText('title'),
+            'description' => $this->postText('description'),
+            'created_by' => session()->get('userID'),
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+        $this->ApplicationModel->saveData('holidays', $data);
+        $this->logAudit('create_holiday', 'holidays', $this->db->insertID(), null, $data);
+
+        session()->setFlashdata('success', 'Feriadu aumenta ona.');
+        return redirect()->back();
+    }
+
+    public function deleteFeriadu($id)
+    {
+        $holiday = $this->db->table('holidays')->where('id', (int) $id)->get()->getRowArray();
+        if (!$holiday) {
+            return $this->backWithError('Feriadu la konese.');
+        }
+
+        $this->ApplicationModel->deleteData('holidays', ['id' => (int) $id]);
+        $this->logAudit('delete_holiday', 'holidays', $id, $holiday, null);
+        session()->setFlashdata('success', 'Feriadu hamos ona.');
+        return redirect()->back();
+    }
+
     // Jestaun Lisensa
     public function lisensa()
     {
@@ -336,24 +662,104 @@ class Administrador extends BaseController
         return view('pages/administrador/lisensa', $data);
     }
 
+    public function leaveBalance()
+    {
+        $year = (int) ($this->request->getGet('year') ?: date('Y'));
+        $data = array_merge($this->data, [
+            'title' => 'Balansu Lisensa',
+            'year' => $year,
+            'balances' => $this->ApplicationModel->getLeaveBalances(year: $year),
+            'funsionariu' => $this->ApplicationModel->getFunsionariu(),
+        ]);
+
+        return view('pages/administrador/leave_balance', $data);
+    }
+
+    public function generateLeaveBalance()
+    {
+        $year = (int) $this->request->getPost('year');
+        $leaveType = $this->postText('leave_type') ?: 'Anuál';
+        $entitlement = max(0, (float) $this->request->getPost('entitlement_days'));
+
+        if ($year < 2000 || $year > 2100 || $entitlement <= 0) {
+            return $this->backWithError('Tinan ka entitlement la loos.');
+        }
+
+        $created = 0;
+        foreach ($this->ApplicationModel->getFunsionariu() as $employee) {
+            $before = $this->db->table('leave_balances')
+                ->where('funsionariu_id', $employee['id'])
+                ->where('leave_type', $leaveType)
+                ->where('year', $year)
+                ->countAllResults();
+            $this->ApplicationModel->ensureLeaveBalance((int) $employee['id'], $leaveType, $year, $entitlement);
+            $this->ApplicationModel->recalculateLeaveBalance((int) $employee['id'], $leaveType, $year);
+            if ($before === 0) {
+                $created++;
+            }
+        }
+
+        $this->logAudit('generate_leave_balance', 'leave_balances', null, null, [
+            'year' => $year,
+            'leave_type' => $leaveType,
+            'entitlement_days' => $entitlement,
+            'created' => $created,
+        ]);
+        session()->setFlashdata('success', "Balansu lisensa generate ona. Record foun: $created.");
+        return redirect()->to(base_url('administrador/lisensa/balansu?year=' . $year));
+    }
+
+    public function updateLeaveBalance($id)
+    {
+        $balance = $this->db->table('leave_balances')->where('id', (int) $id)->get()->getRowArray();
+        if (!$balance) {
+            return $this->backWithError('Balansu lisensa la konese.');
+        }
+
+        $entitlement = max(0, (float) $this->request->getPost('entitlement_days'));
+        $this->ApplicationModel->updateData('leave_balances', [
+            'entitlement_days' => $entitlement,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => (int) $id]);
+        $this->ApplicationModel->recalculateLeaveBalance((int) $balance['funsionariu_id'], $balance['leave_type'], (int) $balance['year']);
+        $this->logAudit('update_leave_balance', 'leave_balances', $id, $balance, ['entitlement_days' => $entitlement]);
+
+        session()->setFlashdata('success', 'Balansu lisensa atualiza ona.');
+        return redirect()->back();
+    }
+
     public function aprovaLisensa($id)
     {
         $estadu = $this->request->getPost('estadu_lisensa');
-        $komentariu = $this->request->getPost('komentariu_admin');
+        $komentariu = trim((string) $this->request->getPost('komentariu_admin'));
 
+        if (!in_array($estadu, ['Aprovadu', 'Rezeitadu', 'Pendente'], true)) {
+            session()->setFlashdata('error', 'Estadu lisensa la loos.');
+            return redirect()->back();
+        }
+
+        if ($estadu === 'Rezeitadu' && $komentariu === '') {
+            session()->setFlashdata('error', 'Komentariu admin obrigatoriu bainhira reject lisensa.');
+            return redirect()->back();
+        }
+
+        $lisensa = $this->ApplicationModel->getLisensa($id);
+        if (!$lisensa) {
+            session()->setFlashdata('error', 'Dadus lisensa la konese.');
+            return redirect()->back();
+        }
+
+        $this->db->transBegin();
         $this->ApplicationModel->updateData('lisensa', [
             'estadu_lisensa'   => $estadu,
             'komentariu_admin' => $komentariu,
             'updated_at'       => date('Y-m-d H:i:s')
         ], ['id' => $id]);
-        
-        if ($estadu == 'Aprovadu') {
-            $lisensa = $this->ApplicationModel->getLisensa($id);
-            // Logic to insert into prezensa for each day
+
+        if ($estadu === 'Aprovadu') {
             $start = new \DateTime($lisensa['data_hahu']);
             $end = new \DateTime($lisensa['data_remata']);
-            $interval = new \DateInterval('P1D');
-            $period = new \DatePeriod($start, $interval, $end->modify('+1 day'));
+            $period = new \DatePeriod($start, new \DateInterval('P1D'), $end->modify('+1 day'));
 
             foreach ($period as $date) {
                 $checkDate = $date->format('Y-m-d');
@@ -361,7 +767,13 @@ class Administrador extends BaseController
                     ->where('funsionariu_id', $lisensa['funsionariu_id'])
                     ->where('data_prezensa', $checkDate)
                     ->get()->getRowArray();
-                
+
+                if ($existing && in_array($existing['estadu_prezensa'], ['Prezente', 'Tardi'], true)) {
+                    $this->db->transRollback();
+                    session()->setFlashdata('error', 'Lisensa la bele aprova tanba iha data neebe funsionariu prezente/tardi ona.');
+                    return redirect()->back();
+                }
+
                 if ($existing) {
                     $this->ApplicationModel->updateData('prezensa', [
                         'estadu_prezensa' => 'Lisensa',
@@ -377,29 +789,99 @@ class Administrador extends BaseController
                 }
             }
         }
-        
-        session()->setFlashdata('success', 'Estadu lisensa atualiza ona!');
+
+        if ($this->db->transStatus() === false) {
+            $this->db->transRollback();
+            session()->setFlashdata('error', 'Erro wainhira atualiza lisensa.');
+        } else {
+            $this->db->transCommit();
+            $this->logAudit('update_lisensa_status', 'lisensa', $id, $lisensa, [
+                'estadu_lisensa' => $estadu,
+                'komentariu_admin' => $komentariu,
+            ]);
+            for ($year = (int) date('Y', strtotime($lisensa['data_hahu'])); $year <= (int) date('Y', strtotime($lisensa['data_remata'])); $year++) {
+                $this->ApplicationModel->recalculateLeaveBalance((int) $lisensa['funsionariu_id'], $lisensa['tipu_lisensa'], $year);
+            }
+            session()->setFlashdata('success', 'Estadu lisensa atualiza ona!');
+        }
+
         return redirect()->back();
     }
 
     // Jestaun Saláriu
     public function salariu()
     {
+        $salariu = $this->ApplicationModel->getSalariu();
         $data = array_merge($this->data, [
             'title' => 'Jestaun Saláriu',
-            'salariu' => $this->ApplicationModel->getSalariu(),
+            'salariu' => $salariu,
+            'salariu_detallu' => $this->ApplicationModel->getSalariuDetalluBySalariuIds(array_column($salariu, 'id')),
             'funsionariu' => $this->ApplicationModel->getFunsionariu(),
             'subsidiu' => $this->ApplicationModel->getSubsidiu(),
+            'payroll_periods' => $this->db->table('payroll_periods')->orderBy('tinan', 'DESC')->orderBy('fulan', 'DESC')->get()->getResultArray(),
         ]);
         return view('pages/administrador/salariu', $data);
     }
 
+    public function lockPayrollPeriod()
+    {
+        $fulan = (int) $this->request->getPost('fulan');
+        $tinan = (int) $this->request->getPost('tinan');
+        if ($fulan < 1 || $fulan > 12 || $tinan < 2000) {
+            return $this->backWithError('Periodu saláriu la loos.');
+        }
+
+        $period = $this->getOrCreatePayrollPeriod($fulan, $tinan);
+        $this->ApplicationModel->updateData('payroll_periods', [
+            'status' => 'Locked',
+            'locked_by' => session()->get('userID'),
+            'locked_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $period['id']]);
+
+        $this->logAudit('lock_payroll_period', 'payroll_periods', $period['id'], $period, ['status' => 'Locked']);
+        session()->setFlashdata('success', 'Periodu saláriu taka ona.');
+        return redirect()->back();
+    }
+
+    public function unlockPayrollPeriod()
+    {
+        $fulan = (int) $this->request->getPost('fulan');
+        $tinan = (int) $this->request->getPost('tinan');
+        $period = $this->getOrCreatePayrollPeriod($fulan, $tinan);
+
+        $this->ApplicationModel->updateData('payroll_periods', [
+            'status' => 'Draft',
+            'locked_by' => null,
+            'locked_at' => null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $period['id']]);
+
+        $this->logAudit('unlock_payroll_period', 'payroll_periods', $period['id'], $period, ['status' => 'Draft']);
+        session()->setFlashdata('success', 'Periodu saláriu loke ona.');
+        return redirect()->back();
+    }
+
     public function createSubsidiu()
     {
+        $naran = $this->postText('naran_subsidiu');
+        $valor = $this->postText('valor_padrao');
+        $deskrisaun = $this->postText('deskrisaun');
+
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran subsidiu tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('subsidiu', 'naran_subsidiu', $naran)) {
+            return $this->backWithError('Subsidiu ne\'e iha ona.');
+        }
+        if (!is_numeric($valor) || (float) $valor < 0) {
+            return $this->backWithError('Valor padrao tenke numeriku no labele negativu.');
+        }
+
         $data = [
-            'naran_subsidiu' => $this->request->getVar('naran_subsidiu'),
-            'valor_padrao'   => $this->request->getVar('valor_padrao'),
-            'deskrisaun'     => $this->request->getVar('deskrisaun'),
+            'naran_subsidiu' => $naran,
+            'valor_padrao'   => (float) $valor,
+            'deskrisaun'     => $deskrisaun,
             'created_at'     => date('Y-m-d H:i:s'),
         ];
         $this->ApplicationModel->saveData('subsidiu', $data);
@@ -409,10 +891,25 @@ class Administrador extends BaseController
 
     public function updateSubsidiu($id)
     {
+        $id = (int) $id;
+        $naran = $this->postText('naran_subsidiu');
+        $valor = $this->postText('valor_padrao');
+        $deskrisaun = $this->postText('deskrisaun');
+
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran subsidiu tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('subsidiu', 'naran_subsidiu', $naran, $id)) {
+            return $this->backWithError('Subsidiu ne\'e iha ona.');
+        }
+        if (!is_numeric($valor) || (float) $valor < 0) {
+            return $this->backWithError('Valor padrao tenke numeriku no labele negativu.');
+        }
+
         $data = [
-            'naran_subsidiu' => $this->request->getVar('naran_subsidiu'),
-            'valor_padrao'   => $this->request->getVar('valor_padrao'),
-            'deskrisaun'     => $this->request->getVar('deskrisaun'),
+            'naran_subsidiu' => $naran,
+            'valor_padrao'   => (float) $valor,
+            'deskrisaun'     => $deskrisaun,
             'updated_at'     => date('Y-m-d H:i:s'),
         ];
         $this->ApplicationModel->updateData('subsidiu', $data, ['id' => $id]);
@@ -437,120 +934,167 @@ class Administrador extends BaseController
 
     public function prosesaSalariu()
     {
-        $funsionariu_id = $this->request->getPost('funsionariu_id');
-        $fulan = $this->request->getPost('fulan');
-        $tinan = $this->request->getPost('tinan');
-        
-        // Check if salary for this month/year already exists
+        $funsionariu_id = (int) $this->request->getPost('funsionariu_id');
+        $fulan = (int) $this->request->getPost('fulan');
+        $tinan = (int) $this->request->getPost('tinan');
+        $manual_deskontu = max(0, (float) $this->request->getPost('total_deskontu'));
+        $subsidiu_ids = $this->request->getPost('subsidiu_ids') ?? [];
+
+        if ($funsionariu_id <= 0 || $fulan < 1 || $fulan > 12 || $tinan < 2000) {
+            session()->setFlashdata('error', 'Dadus periodu pagamentu la loos.');
+            return redirect()->back();
+        }
+
+        $period = $this->getOrCreatePayrollPeriod($fulan, $tinan);
+        if (($period['status'] ?? 'Draft') === 'Locked') {
+            session()->setFlashdata('error', 'Periodu saláriu ne\'e taka ona. La bele prosesa pagamentu foun.');
+            return redirect()->back();
+        }
+
+        $funsionariu = $this->ApplicationModel->getFunsionariu($funsionariu_id);
+        if (!$funsionariu) {
+            session()->setFlashdata('error', 'Funsionariu la konese.');
+            return redirect()->back();
+        }
+
         $check = $this->db->table('salariu')
             ->where('funsionariu_id', $funsionariu_id)
             ->where('fulan', $fulan)
             ->where('tinan', $tinan)
             ->get()->getRowArray();
-            
+
         if ($check) {
-            session()->setFlashdata('error', "Saláriu ba funsionáriu ne'e iha fulan/tinan ne'e prosesa ona!");
+            session()->setFlashdata('error', 'Salariu ba funsionariu nee iha fulan/tinan nee prosesa ona!');
             return redirect()->back();
         }
 
+        $salariu_baziku = (float) ($funsionariu['salariu_baziku'] ?? 0);
+        $selectedSubsidiu = [];
+        $total_subsidiu = 0.0;
+        foreach ($subsidiu_ids as $sub_id) {
+            $sub_data = $this->ApplicationModel->getSubsidiu((int) $sub_id);
+            if (!$sub_data) {
+                continue;
+            }
+            $selectedSubsidiu[] = $sub_data;
+            $total_subsidiu += (float) $sub_data['valor_padrao'];
+        }
+
+        $active_sansauns = $this->db->table('sansaun')
+            ->select('sansaun.*')
+            ->join('tipu_sansaun', 'sansaun.tipu_sansaun_id = tipu_sansaun.id')
+            ->where('funsionariu_id', $funsionariu_id)
+            ->where('estadu_sansaun', 'Ativu')
+            ->groupStart()
+                ->where('tipu_sansaun.kategoria', 'Korta Saláriu')
+                ->orWhere('tipu_sansaun.kategoria', 'Korta Salariu')
+                ->orWhere('tipu_sansaun.kategoria', 'salary_deduction')
+            ->groupEnd()
+            ->where('valor_pagadu < valor_total')
+            ->orderBy('data_sansaun', 'ASC')
+            ->get()->getResultArray();
+
+        $sansaun_outstanding = 0.0;
+        foreach ($active_sansauns as $sansaun) {
+            $sansaun_outstanding += max(0, (float) $sansaun['valor_total'] - (float) $sansaun['valor_pagadu']);
+        }
+
+        $available_before_sanction = max(0, $salariu_baziku + $total_subsidiu - $manual_deskontu);
+        $sansaun_dedusaun = min($sansaun_outstanding, $available_before_sanction);
+        $total_deskontu = $manual_deskontu + $sansaun_dedusaun;
+        $salariu_liquidu = max(0, $salariu_baziku + $total_subsidiu - $total_deskontu);
+
         $data = [
             'funsionariu_id'   => $funsionariu_id,
+            'payroll_period_id' => $period['id'],
             'fulan'            => $fulan,
             'tinan'            => $tinan,
-            'salariu_baziku'   => $this->request->getPost('salariu_baziku'),
-            'total_subsidiu'   => $this->request->getPost('total_subsidiu'),
-            'total_deskontu'   => $this->request->getPost('total_deskontu'),
-            'salariu_liquidu'  => $this->request->getPost('salariu_liquidu'),
+            'salariu_baziku'   => $salariu_baziku,
+            'total_subsidiu'   => $total_subsidiu,
+            'total_deskontu'   => $total_deskontu,
+            'salariu_liquidu'  => $salariu_liquidu,
             'estadu_pagamentu' => 'Selu Ona',
             'data_pagamentu'   => date('Y-m-d'),
+            'processed_by'      => session()->get('userID'),
+            'processed_at'      => date('Y-m-d H:i:s'),
             'created_at'       => date('Y-m-d H:i:s'),
         ];
 
         $this->db->transBegin();
-        
         $this->ApplicationModel->saveData('salariu', $data);
         $salariu_id = $this->db->insertID();
 
-        // Save details (Subsidies)
-        $subsidiu_ids = $this->request->getPost('subsidiu_ids');
-        if (!empty($subsidiu_ids)) {
-            foreach ($subsidiu_ids as $sub_id) {
-                $sub_data = $this->ApplicationModel->getSubsidiu($sub_id);
-                $this->ApplicationModel->saveData('salariu_detallu', [
-                    'salariu_id'       => $salariu_id,
-                    'naran_komponente' => $sub_data['naran_subsidiu'],
-                    'valór'            => $sub_data['valor_padrao'],
-                    'tipu'             => 'Subsidiu'
-                ]);
-            }
+        foreach ($selectedSubsidiu as $sub_data) {
+            $this->ApplicationModel->saveData('salariu_detallu', [
+                'salariu_id'       => $salariu_id,
+                'naran_komponente' => $sub_data['naran_subsidiu'],
+                'valor'            => $sub_data['valor_padrao'],
+                'tipu'             => 'Subsidiu'
+            ]);
         }
-        
-        // Save details (Discount if any)
-        if ($data['total_deskontu'] > 0) {
-             $this->ApplicationModel->saveData('salariu_detallu', [
+
+        if ($manual_deskontu > 0) {
+            $this->ApplicationModel->saveData('salariu_detallu', [
                 'salariu_id'       => $salariu_id,
                 'naran_komponente' => 'Deskontu Jeral',
-                'valór'            => $data['total_deskontu'],
+                'valor'            => $manual_deskontu,
                 'tipu'             => 'Deskontu'
             ]);
         }
 
-        // Save details (Sanction Deduction)
-        $sansaun_dedusaun = $this->request->getPost('sansaun_dedusaun');
         if ($sansaun_dedusaun > 0) {
-             $this->ApplicationModel->saveData('salariu_detallu', [
+            $this->ApplicationModel->saveData('salariu_detallu', [
                 'salariu_id'       => $salariu_id,
                 'naran_komponente' => 'Potongan Sansaun',
-                'valór'            => $sansaun_dedusaun,
+                'valor'            => $sansaun_dedusaun,
                 'tipu'             => 'Deskontu'
             ]);
 
-            // Update Sanction records to reflect payment
-            $active_sansauns = $this->db->table('sansaun')
-                ->select('sansaun.*')
-                ->join('tipu_sansaun', 'sansaun.tipu_sansaun_id = tipu_sansaun.id')
-                ->where('funsionariu_id', $funsionariu_id)
-                ->where('estadu_sansaun', 'Ativu')
-                ->where('tipu_sansaun.kategoria', 'Korta Saláriu')
-                ->where('valor_pagadu < valor_total')
-                ->orderBy('data_sansaun', 'ASC')
-                ->get()->getResultArray();
-             
-             $amount_to_pay = $sansaun_dedusaun;
-             foreach ($active_sansauns as $as) {
-                 if ($amount_to_pay <= 0) break;
-                 $remaining = $as['valor_total'] - $as['valor_pagadu'];
-                 $pay_now = min($amount_to_pay, $remaining);
-                 
-                 $new_pagadu = $as['valor_pagadu'] + $pay_now;
-                 $up_data = [
-                     'valor_pagadu' => $new_pagadu,
-                     'updated_at'   => date('Y-m-d H:i:s')
-                 ];
-                 if ($new_pagadu >= $as['valor_total']) {
-                     $up_data['estadu_sansaun'] = 'Konkluidu';
-                 }
-                 $this->db->table('sansaun')->where('id', $as['id'])->update($up_data);
-                 $amount_to_pay -= $pay_now;
-             }
+            $amount_to_pay = $sansaun_dedusaun;
+            foreach ($active_sansauns as $as) {
+                if ($amount_to_pay <= 0) {
+                    break;
+                }
+                $remaining = (float) $as['valor_total'] - (float) $as['valor_pagadu'];
+                $pay_now = min($amount_to_pay, $remaining);
+                $new_pagadu = (float) $as['valor_pagadu'] + $pay_now;
+                $up_data = [
+                    'valor_pagadu' => $new_pagadu,
+                    'updated_at'   => date('Y-m-d H:i:s')
+                ];
+                if ($new_pagadu >= (float) $as['valor_total']) {
+                    $up_data['estadu_sansaun'] = 'Konkluidu';
+                }
+                $this->db->table('sansaun')->where('id', $as['id'])->update($up_data);
+                $amount_to_pay -= $pay_now;
+            }
         }
 
-        if ($this->db->transStatus() === FALSE) {
+        if ($this->db->transStatus() === false) {
             $this->db->transRollback();
-            session()->setFlashdata('error', 'Erro wainhira prosesa saláriu!');
+            session()->setFlashdata('error', 'Erro wainhira prosesa salariu!');
         } else {
             $this->db->transCommit();
-            session()->setFlashdata('success', 'Pagamentu saláriu prosesa ho susesu!');
+            $this->logAudit('process_payroll', 'salariu', $salariu_id, null, [
+                'funsionariu_id' => $funsionariu_id,
+                'fulan' => $fulan,
+                'tinan' => $tinan,
+                'salariu_baziku' => $salariu_baziku,
+                'total_subsidiu' => $total_subsidiu,
+                'total_deskontu' => $total_deskontu,
+                'salariu_liquidu' => $salariu_liquidu,
+            ]);
+            session()->setFlashdata('success', 'Pagamentu salariu prosesa ho susesu!');
         }
 
         return redirect()->back();
     }
 
-    // Avizu & Sansaun
+    // Anunsiu & Sansaun
     public function avizu()
     {
         $data = array_merge($this->data, [
-            'title' => 'Jestaun Avizu',
+            'title' => 'Jestaun Anunsiu',
             'avizu' => $this->ApplicationModel->getAvizu(),
         ]);
         return view('pages/administrador/avizu', $data);
@@ -558,21 +1102,43 @@ class Administrador extends BaseController
 
     public function createAvizu()
     {
+        $titulu = $this->postText('titulu');
+        $konteudu = $this->postText('konteudu');
+
+        if ($titulu === '' || strlen($titulu) > 150) {
+            return $this->backWithError('Titulu anunsiu tenke prense no labele liu karakter 150.');
+        }
+
+        if ($konteudu === '' || strlen($konteudu) > 5000) {
+            return $this->backWithError('Konteudu anunsiu tenke prense no labele liu karakter 5000.');
+        }
+
         $data = [
-            'titulu' => $this->request->getVar('titulu'),
-            'konteudu' => $this->request->getVar('konteudu'),
+            'titulu' => $titulu,
+            'konteudu' => $konteudu,
             'data_publikasaun' => date('Y-m-d'),
             'created_at' => date('Y-m-d H:i:s')
         ];
+
+        if ($this->db->fieldExists('published_at', 'avizu')) {
+            $data['published_at'] = date('Y-m-d H:i:s');
+        }
+        if ($this->db->fieldExists('created_by', 'avizu')) {
+            $data['created_by'] = session()->get('userID');
+        }
+        if ($this->db->fieldExists('status', 'avizu')) {
+            $data['status'] = 'Published';
+        }
+
         $this->ApplicationModel->saveData('avizu', $data);
-        session()->setFlashdata('success', 'Avizu foun publika ona!');
+        session()->setFlashdata('success', 'Anunsiu foun publika ona!');
         return redirect()->back();
     }
 
     public function deleteAvizu($id)
     {
         $this->ApplicationModel->deleteData('avizu', ['id' => $id]);
-        session()->setFlashdata('success', 'Avizu hamos ona!');
+        session()->setFlashdata('success', 'Anunsiu hamos ona!');
         return redirect()->back();
     }
 
@@ -587,8 +1153,306 @@ class Administrador extends BaseController
         }
 
         $this->ApplicationModel->updateData('avizu', ['data_remata' => $final_datetime], ['id' => $id]);
-        session()->setFlashdata('success', 'Tempu penghapusan otomatis atualiza ona!');
+        session()->setFlashdata('success', 'Tempu remata anunsiu atualiza ona!');
         return redirect()->back();
+    }
+
+    public function documentu()
+    {
+        $documents = $this->db->table('employee_documents')
+            ->select('employee_documents.*, funsionariu.nid, funsionariu.naran_kompletu')
+            ->join('funsionariu', 'employee_documents.funsionariu_id = funsionariu.id', 'left')
+            ->where('employee_documents.deleted_at', null)
+            ->orderBy('employee_documents.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $data = array_merge($this->data, [
+            'title' => 'Jestaun Dokumentu',
+            'documents' => $documents,
+            'funsionariu' => $this->ApplicationModel->getFunsionariu(),
+            'categories' => $this->db->tableExists('document_categories') ? $this->db->table('document_categories')->orderBy('name', 'ASC')->get()->getResultArray() : [],
+        ]);
+
+        return view('pages/administrador/documentu', $data);
+    }
+
+    public function createDocumentCategory()
+    {
+        $name = $this->postText('name');
+        if ($name === '' || strlen($name) > 100) {
+            return $this->backWithError('Naran kategoria dokumentu tenke prense no labele liu karakter 100.');
+        }
+        if ($this->db->table('document_categories')->where('name', $name)->countAllResults() > 0) {
+            return $this->backWithError('Kategoria dokumentu iha ona.');
+        }
+
+        $this->db->table('document_categories')->insert([
+            'name' => $name,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+        $this->logAudit('create_document_category', 'document_categories', $this->db->insertID(), null, ['name' => $name]);
+        session()->setFlashdata('success', 'Kategoria dokumentu aumenta ona.');
+        return redirect()->back();
+    }
+
+    public function deleteDocumentCategory($id)
+    {
+        $category = $this->db->table('document_categories')->where('id', (int) $id)->get()->getRowArray();
+        if (!$category) {
+            return $this->backWithError('Kategoria dokumentu la konese.');
+        }
+        $used = $this->db->table('employee_documents')->where('category', $category['name'])->where('deleted_at', null)->countAllResults();
+        if ($used > 0) {
+            return $this->backWithError('Kategoria ne\'e seidauk bele hamos tanba dokumentu uza hela.');
+        }
+
+        $this->ApplicationModel->deleteData('document_categories', ['id' => (int) $id]);
+        $this->logAudit('delete_document_category', 'document_categories', $id, $category, null);
+        session()->setFlashdata('success', 'Kategoria dokumentu hamos ona.');
+        return redirect()->back();
+    }
+
+    public function uploadDocumentu()
+    {
+        if (!$this->validate([
+            'funsionariu_id' => 'required|is_natural_no_zero',
+            'category' => 'required|max_length[100]',
+            'visibility' => 'required|in_list[admin_only,employee_visible]',
+            'documentu' => 'uploaded[documentu]|max_size[documentu,5120]|ext_in[documentu,pdf,jpg,jpeg,png]|mime_in[documentu,application/pdf,image/jpg,image/jpeg,image/png]',
+        ])) {
+            return $this->backWithError(implode(' ', $this->validator->getErrors()));
+        }
+
+        $funsionariu = $this->ApplicationModel->getFunsionariu((int) $this->request->getPost('funsionariu_id'));
+        if (!$funsionariu) {
+            return $this->backWithError('Funsionariu la konese.');
+        }
+
+        $file = $this->request->getFile('documentu');
+        $uploadDir = FCPATH . 'uploads/documentu';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
+
+        $storedName = $file->getRandomName();
+        $file->move($uploadDir, $storedName);
+
+        $data = [
+            'funsionariu_id' => (int) $funsionariu['id'],
+            'category' => $this->postText('category'),
+            'original_name' => $file->getClientName(),
+            'stored_name' => $storedName,
+            'mime_type' => $file->getClientMimeType(),
+            'size_bytes' => $file->getSize(),
+            'visibility' => $this->request->getPost('visibility'),
+            'uploaded_by' => session()->get('userID'),
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        $this->ApplicationModel->saveData('employee_documents', $data);
+        $documentId = $this->db->insertID();
+        $this->logAudit('upload_employee_document', 'employee_documents', $documentId, null, $data);
+
+        session()->setFlashdata('success', 'Dokumentu upload ho susesu.');
+        return redirect()->back();
+    }
+
+    public function deleteDocumentu($id)
+    {
+        $document = $this->db->table('employee_documents')
+            ->where('id', (int) $id)
+            ->where('deleted_at', null)
+            ->get()
+            ->getRowArray();
+
+        if (!$document) {
+            return $this->backWithError('Dokumentu la konese.');
+        }
+
+        $this->ApplicationModel->updateData('employee_documents', [
+            'deleted_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => (int) $id]);
+
+        $this->logAudit('delete_employee_document', 'employee_documents', $id, $document, null);
+        session()->setFlashdata('success', 'Dokumentu hamos ona.');
+        return redirect()->back();
+    }
+
+    public function audit()
+    {
+        $logs = $this->db->table('audit_logs')
+            ->select('audit_logs.*, users.username, users.fullname')
+            ->join('users', 'audit_logs.actor_user_id = users.id', 'left')
+            ->orderBy('audit_logs.created_at', 'DESC')
+            ->limit(500)
+            ->get()
+            ->getResultArray();
+
+        return view('pages/administrador/audit', array_merge($this->data, [
+            'title' => 'Rejistu Auditoria',
+            'logs' => $logs,
+        ]));
+    }
+
+    public function maintenance()
+    {
+        $dir = $this->backupDir();
+        $files = [];
+        foreach (glob($dir . DIRECTORY_SEPARATOR . 'backup_*.sql') ?: [] as $file) {
+            $files[] = [
+                'name' => basename($file),
+                'size' => filesize($file),
+                'modified_at' => date('Y-m-d H:i:s', filemtime($file)),
+            ];
+        }
+        usort($files, static fn($a, $b) => strcmp($b['modified_at'], $a['modified_at']));
+
+        return view('pages/administrador/maintenance', array_merge($this->data, [
+            'title' => 'Manutensaun',
+            'backups' => $files,
+        ]));
+    }
+
+    public function createBackup()
+    {
+        $dir = $this->backupDir();
+        $fileName = 'backup_' . date('Ymd_His') . '.sql';
+        $path = $dir . DIRECTORY_SEPARATOR . $fileName;
+        file_put_contents($path, $this->generateSqlBackup());
+
+        $this->logAudit('create_backup', 'backup', $fileName, null, ['size' => filesize($path)]);
+        session()->setFlashdata('success', 'Kopia seguransa kria ona: ' . $fileName);
+        return redirect()->back();
+    }
+
+    public function downloadBackup($fileName)
+    {
+        $fileName = basename((string) $fileName);
+        if (!preg_match('/^backup_\d{8}_\d{6}\.sql$/', $fileName)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $path = $this->backupDir() . DIRECTORY_SEPARATOR . $fileName;
+        if (!is_file($path)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return $this->response->download($path, null);
+    }
+
+    public function restoreBackup()
+    {
+        if (!$this->validate([
+            'backup_file' => 'uploaded[backup_file]|max_size[backup_file,51200]|ext_in[backup_file,sql]|mime_in[backup_file,text/plain,application/octet-stream,application/sql]',
+        ])) {
+            return $this->backWithError(implode(' ', $this->validator->getErrors()));
+        }
+
+        $file = $this->request->getFile('backup_file');
+        $sql = file_get_contents($file->getTempName());
+        if ($sql === false || trim($sql) === '') {
+            return $this->backWithError('Fail kopia seguransa mamuk ka la bele lee.');
+        }
+
+        $statements = $this->splitSqlStatements($sql);
+        $this->db->query('SET FOREIGN_KEY_CHECKS=0');
+        foreach ($statements as $statement) {
+            $trimmed = trim($statement);
+            if ($trimmed !== '') {
+                $this->db->query($trimmed);
+            }
+        }
+        $this->db->query('SET FOREIGN_KEY_CHECKS=1');
+
+        $this->logAudit('restore_backup', 'backup', $file->getClientName(), null, ['statements' => count($statements)]);
+        session()->setFlashdata('success', 'Restaura kopia seguransa remata.');
+        return redirect()->back();
+    }
+
+    private function backupDir(): string
+    {
+        $dir = WRITEPATH . 'backups';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        return $dir;
+    }
+
+    private function generateSqlBackup(): string
+    {
+        $sql = "-- SIMAUCATAR backup " . date('Y-m-d H:i:s') . "\n";
+        $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
+
+        foreach ($this->db->listTables() as $table) {
+            $create = $this->db->query('SHOW CREATE TABLE ' . $this->quoteIdentifier($table))->getRowArray();
+            $createSql = $create['Create Table'] ?? array_values($create)[1] ?? '';
+            $sql .= "DROP TABLE IF EXISTS " . $this->quoteIdentifier($table) . ";\n";
+            $sql .= $createSql . ";\n\n";
+
+            $rows = $this->db->table($table)->get()->getResultArray();
+            foreach ($rows as $row) {
+                $columns = array_map(fn($col) => $this->quoteIdentifier($col), array_keys($row));
+                $values = array_map(fn($value) => $value === null ? 'NULL' : $this->db->escape($value), array_values($row));
+                $sql .= 'INSERT INTO ' . $this->quoteIdentifier($table)
+                    . ' (' . implode(', ', $columns) . ') VALUES ('
+                    . implode(', ', $values) . ");\n";
+            }
+            $sql .= "\n";
+        }
+
+        return $sql . "SET FOREIGN_KEY_CHECKS=1;\n";
+    }
+
+    private function quoteIdentifier(string $identifier): string
+    {
+        return '`' . str_replace('`', '``', $identifier) . '`';
+    }
+
+    private function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $buffer = '';
+        $inString = false;
+        $quote = '';
+        $length = strlen($sql);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $sql[$i];
+            $next = $sql[$i + 1] ?? '';
+
+            if (!$inString && $char === '-' && $next === '-') {
+                while ($i < $length && $sql[$i] !== "\n") {
+                    $i++;
+                }
+                continue;
+            }
+
+            if (($char === "'" || $char === '"') && ($i === 0 || $sql[$i - 1] !== '\\')) {
+                if (!$inString) {
+                    $inString = true;
+                    $quote = $char;
+                } elseif ($quote === $char) {
+                    $inString = false;
+                }
+            }
+
+            if ($char === ';' && !$inString) {
+                $statements[] = $buffer;
+                $buffer = '';
+                continue;
+            }
+
+            $buffer .= $char;
+        }
+
+        if (trim($buffer) !== '') {
+            $statements[] = $buffer;
+        }
+
+        return $statements;
     }
 
     public function sansaun()
@@ -618,6 +1482,12 @@ class Administrador extends BaseController
 
     public function deleteTipuSansaun($id)
     {
+        $used = $this->db->table('sansaun')->where('tipu_sansaun_id', $id)->countAllResults();
+        if ($used > 0) {
+            session()->setFlashdata('error', 'Tipu sansaun nee la bele hamos tanba uza ona iha dadus sansaun.');
+            return redirect()->back();
+        }
+
         $this->ApplicationModel->deleteData('tipu_sansaun', ['id' => $id]);
         session()->setFlashdata('success', 'Tipu sansaun hamos ona!');
         return redirect()->back();
@@ -628,6 +1498,10 @@ class Administrador extends BaseController
         $funsionariu_id = $this->request->getVar('funsionariu_id');
         $tipu_id = $this->request->getVar('tipu_sansaun_id');
         $tipu = $this->ApplicationModel->getTipuSansaun($tipu_id);
+        if (!$tipu) {
+            session()->setFlashdata('error', 'Tipu sansaun la konese.');
+            return redirect()->back();
+        }
 
         $data = [
             'funsionariu_id' => $funsionariu_id,
@@ -685,6 +1559,9 @@ class Administrador extends BaseController
         // Update Sansaun Status
         $this->ApplicationModel->updateData('sansaun', [
             'estadu_sansaun' => 'Retira',
+            'retira_reason'  => $this->request->getPost('retira_reason') ?: 'Retira husi administrasaun',
+            'retira_by'      => session()->get('userID'),
+            'retira_at'      => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ], ['id' => $id]);
 

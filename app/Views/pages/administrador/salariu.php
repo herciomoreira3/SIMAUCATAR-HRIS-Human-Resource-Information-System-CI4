@@ -4,6 +4,57 @@
 
 <div class="row">
     <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Taka/Loke Periodu Saláriu</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-5">
+                        <form action="<?= base_url('administrador/salariu/periodu/lock') ?>" method="post" class="row g-2">
+                            <?= csrf_field() ?>
+                            <div class="col-4">
+                                <input type="number" name="fulan" class="form-control" min="1" max="12" value="<?= date('n') ?>" required>
+                            </div>
+                            <div class="col-4">
+                                <input type="number" name="tinan" class="form-control" min="2000" value="<?= date('Y') ?>" required>
+                            </div>
+                            <div class="col-4">
+                                <button type="submit" class="btn btn-danger w-100">Taka</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-5">
+                        <form action="<?= base_url('administrador/salariu/periodu/unlock') ?>" method="post" class="row g-2">
+                            <?= csrf_field() ?>
+                            <div class="col-4">
+                                <input type="number" name="fulan" class="form-control" min="1" max="12" value="<?= date('n') ?>" required>
+                            </div>
+                            <div class="col-4">
+                                <input type="number" name="tinan" class="form-control" min="2000" value="<?= date('Y') ?>" required>
+                            </div>
+                            <div class="col-4">
+                                <button type="submit" class="btn btn-secondary w-100">Loke</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="small text-muted">Periodu ne'ebe taka ona la bele prosesa saláriu foun.</div>
+                    </div>
+                </div>
+                <?php if (!empty($payroll_periods)): ?>
+                    <div class="mt-3">
+                        <?php foreach (array_slice($payroll_periods, 0, 6) as $period): ?>
+                            <span class="badge bg-<?= $period['status'] === 'Locked' ? 'danger' : 'secondary' ?> me-1">
+                                <?= sprintf('%02d', $period['fulan']) ?>/<?= $period['tinan'] ?> <?= ($period['status'] === 'Locked') ? 'Taka' : 'Loke' ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Lista Saláriu Funsionáriu</h5>
@@ -23,13 +74,14 @@
                                 <th>Saláriu Líquidu</th>
                                 <th>Data Pagamentu</th>
                                 <th>Estadu</th>
+                                <th>Asaun</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach($salariu as $s): ?>
                             <tr>
-                                <td><?= $s['nid'] ?? '' ?></td>
-                                <td><?= $s['naran_kompletu'] ?? '' ?></td>
+                                    <td><?= esc($s['nid'] ?? '') ?></td>
+                                    <td><?= esc($s['naran_kompletu'] ?? '') ?></td>
                                 <td><?= sprintf("%02d", $s['fulan']) ?>/<?= $s['tinan'] ?></td>
                                 <td>$ <?= number_format($s['salariu_baziku'], 2) ?></td>
                                 <td>$ <?= number_format($s['total_subsidiu'], 2) ?></td>
@@ -38,14 +90,81 @@
                                 <td><?= !empty($s['data_pagamentu']) ? date('d-m-Y', strtotime($s['data_pagamentu'])) : '-' ?></td>
                                 <td>
                                     <span class="badge bg-<?= $s['estadu_pagamentu'] == 'Selu Ona' ? 'success' : 'warning' ?>">
-                                        <?= $s['estadu_pagamentu'] ?>
+                                        <?= esc($s['estadu_pagamentu']) ?>
                                     </span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetalluSalariu<?= $s['id'] ?>">Detallu</button>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <?php foreach($salariu as $s): ?>
+                <?php $detallu = $salariu_detallu[$s['id']] ?? []; ?>
+                <div class="modal fade" id="modalDetalluSalariu<?= $s['id'] ?>" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Detallu Pagamentu - <?= esc($s['naran_kompletu'] ?? '-') ?></h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div>
+                                        <div class="text-muted small">Periodu</div>
+                                        <strong><?= sprintf("%02d", $s['fulan']) ?>/<?= $s['tinan'] ?></strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-muted small">Salariu Likuidu</div>
+                                        <strong class="text-success">$ <?= number_format($s['salariu_liquidu'], 2) ?></strong>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Komponente</th>
+                                                <th>Tipu</th>
+                                                <th class="text-end">Valor</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Salariu Baziku</td>
+                                                <td><span class="badge bg-primary">Baziku</span></td>
+                                                <td class="text-end">$ <?= number_format($s['salariu_baziku'], 2) ?></td>
+                                            </tr>
+                                            <?php foreach($detallu as $d): ?>
+                                            <tr>
+                                                <td><?= esc($d['naran_komponente']) ?></td>
+                                                <td><span class="badge bg-<?= $d['tipu'] === 'Deskontu' ? 'danger' : 'success' ?>"><?= esc($d['tipu']) ?></span></td>
+                                                <td class="text-end">$ <?= number_format($d['valor'], 2) ?></td>
+                                            </tr>
+                                            <?php endforeach; ?>
+                                            <?php if (empty($detallu)): ?>
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">La iha komponente adicional.</td>
+                                            </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr><th colspan="2">Total Subsidiu</th><th class="text-end">$ <?= number_format($s['total_subsidiu'], 2) ?></th></tr>
+                                            <tr><th colspan="2">Total Deskontu</th><th class="text-end text-danger">$ <?= number_format($s['total_deskontu'], 2) ?></th></tr>
+                                            <tr><th colspan="2">Salariu Likuidu</th><th class="text-end text-success">$ <?= number_format($s['salariu_liquidu'], 2) ?></th></tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Taka</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -70,12 +189,16 @@
                             <tbody>
                                 <?php foreach($subsidiu as $sub): ?>
                                 <tr>
-                                    <td><?= $sub['naran_subsidiu'] ?></td>
+                                    <td><?= esc($sub['naran_subsidiu']) ?></td>
                                     <td>$ <?= number_format($sub['valor_padrao'], 2) ?></td>
-                                    <td><?= $sub['deskrisaun'] ?></td>
+                                    <td><?= esc($sub['deskrisaun']) ?></td>
                                     <td>
-                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editSubsidiuModal<?= $sub['id'] ?>">Edit</button>
-                                        <a href="<?= base_url('administrador/subsidiu/delete/'.$sub['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos subsidiu ne\'e?')">Hamos</a>
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editSubsidiuModal<?= $sub['id'] ?>">Edit</button>
+                                        <form action="<?= base_url('administrador/subsidiu/delete/'.$sub['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos subsidiu ne\'e?')">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
+                                        </form>
                                     </td>
                                 </tr>
 
@@ -83,15 +206,16 @@
                                 <div class="modal fade" id="editSubsidiuModal<?= $sub['id'] ?>" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <form action="<?= base_url('administrador/subsidiu/update/'.$sub['id']) ?>" method="post">
+                    <?= csrf_field() ?>
                                             <div class="modal-content">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title">Atualiza Subsídiu</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <div class="mb-3">
                                                         <label class="form-label">Naran Subsídiu</label>
-                                                        <input type="text" name="naran_subsidiu" class="form-control" value="<?= $sub['naran_subsidiu'] ?>" required>
+                                                        <input type="text" name="naran_subsidiu" class="form-control" value="<?= esc($sub['naran_subsidiu']) ?>" required>
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Valór Padrão ($)</label>
@@ -99,7 +223,7 @@
                                                     </div>
                                                     <div class="mb-3">
                                                         <label class="form-label">Deskrisaun</label>
-                                                        <textarea name="deskrisaun" class="form-control" rows="2"><?= $sub['deskrisaun'] ?></textarea>
+                                                        <textarea name="deskrisaun" class="form-control" rows="2"><?= esc($sub['deskrisaun']) ?></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
@@ -123,10 +247,11 @@
     <div class="modal fade" id="addSubsidiuModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <form action="<?= base_url('administrador/subsidiu') ?>" method="post">
+                    <?= csrf_field() ?>
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">Aumenta Subsídiu Foun</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -157,7 +282,7 @@
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title text-white">Seleksiona Funsionáriu ba Pagamentu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row mb-3">
@@ -210,10 +335,11 @@
     <div class="modal fade" id="addPagamentuModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <form action="<?= base_url('administrador/salariu/prosesa') ?>" method="post">
+                    <?= csrf_field() ?>
                 <div class="modal-content">
                     <div class="modal-header bg-success text-white">
                         <h5 class="modal-title text-white">Pagamentu Saláriu: <span id="paymentFunsionariuName"></span></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="funsionariu_id" id="hiddenFunsionariuId">
@@ -251,9 +377,9 @@
                                 <div class="border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
                                     <?php foreach($subsidiu as $sub): ?>
                                         <div class="form-check">
-                                            <input class="form-check-input subsidiu-check" type="checkbox" name="subsidiu_ids[]" value="<?= $sub['id'] ?>" data-naran="<?= $sub['naran_subsidiu'] ?>" data-valor="<?= $sub['valor_padrao'] ?>" id="sub<?= $sub['id'] ?>" onchange="calculateTotal()">
+                                            <input class="form-check-input subsidiu-check" type="checkbox" name="subsidiu_ids[]" value="<?= $sub['id'] ?>" data-naran="<?= esc($sub['naran_subsidiu']) ?>" data-valor="<?= $sub['valor_padrao'] ?>" id="sub<?= $sub['id'] ?>" onchange="calculateTotal()">
                                             <label class="form-check-label text-dark" for="sub<?= $sub['id'] ?>">
-                                                <?= $sub['naran_subsidiu'] ?> ($<?= number_format($sub['valor_padrao'], 2) ?>)
+                                                <?= esc($sub['naran_subsidiu']) ?> ($<?= number_format($sub['valor_padrao'], 2) ?>)
                                             </label>
                                         </div>
                                     <?php endforeach; ?>
@@ -282,6 +408,26 @@
 </div>
 
 <script>
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function (char) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char];
+        });
+    }
+
+    function encodePaymentPayload(value) {
+        return btoa(unescape(encodeURIComponent(JSON.stringify(value))));
+    }
+
+    function decodePaymentPayload(value) {
+        return JSON.parse(decodeURIComponent(escape(atob(value))));
+    }
+
     // Update Aumenta Pagamentu button behavior
     document.querySelector('[data-bs-target="#addPagamentuModal"]').setAttribute('data-bs-target', '#selectionModal');
     
@@ -305,14 +451,15 @@
                     if (status == 'Paid' && !isPaid) return;
                     if (status == 'Unpaid' && isPaid) return;
 
+                    var encodedFunsionariu = encodePaymentPayload(f);
                     html += '<tr>' +
-                        '<td>' + f.nid + '</td>' +
-                        '<td>' + f.naran_kompletu + '</td>' +
-                        '<td>' + f.naran_pozisaun + '</td>' +
+                        '<td>' + escapeHtml(f.nid) + '</td>' +
+                        '<td>' + escapeHtml(f.naran_kompletu) + '</td>' +
+                        '<td>' + escapeHtml(f.naran_pozisaun) + '</td>' +
                         '<td>' + (isPaid ? '<span class="badge bg-success">Selu Ona</span>' : '<span class="badge bg-warning">Seidauk Selu</span>') + '</td>' +
-                        '<td>' + 
-                        (isPaid ? '<button class="btn btn-secondary btn-sm" disabled>Selu</button>' : 
-                        '<button class="btn btn-success btn-sm" onclick="openPaymentDetail(\'' + btoa(JSON.stringify(f)) + '\')">Selu</button>') +
+                        '<td>' +
+                        (isPaid ? '<button type="button" class="btn btn-secondary btn-sm" disabled>Selu</button>' :
+                        '<button type="button" class="btn btn-success btn-sm" onclick="openPaymentDetail(\'' + encodedFunsionariu + '\')">Selu</button>') +
                         '</td>' +
                         '</tr>';
                 });
@@ -321,7 +468,7 @@
     }
 
     function openPaymentDetail(encodedData) {
-        var f = JSON.parse(atob(encodedData));
+        var f = decodePaymentPayload(encodedData);
         var fulan = document.getElementById('filterFulan').value;
         var tinan = document.getElementById('filterTinan').value;
         var monthName = document.getElementById('filterFulan').options[document.getElementById('filterFulan').selectedIndex].text;

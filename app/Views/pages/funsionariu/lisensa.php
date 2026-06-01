@@ -2,6 +2,22 @@
 <?= $this->section('content'); ?>
 <h1 class="h3 mb-3"><strong>Pedidu</strong> Lisensa</h1>
 
+<?php if (!empty($leave_balances)): ?>
+<div class="row mb-3">
+    <?php foreach ($leave_balances as $balance): ?>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="text-muted small"><?= esc($balance['leave_type']) ?> <?= esc($balance['year']) ?></div>
+                    <div class="h4 mb-0"><?= number_format($balance['remaining_days'], 1) ?> loron</div>
+                    <div class="small text-muted">Usadu <?= number_format($balance['used_days'], 1) ?>, pendente <?= number_format($balance['pending_days'], 1) ?></div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <div class="row">
     <div class="col-md-4">
         <div class="card">
@@ -14,10 +30,11 @@
                         <div class="alert-message">
                             <?= session()->getFlashdata('error') ?>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
                     </div>
                 <?php endif; ?>
                 <form action="<?= base_url('funsionariu/lisensa') ?>" method="post" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Tipu Lisensa</label>
                         <select name="tipu_lisensa" class="form-select" required>

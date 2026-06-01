@@ -5,7 +5,7 @@
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -61,6 +61,7 @@
                 <h5 class="card-title mb-0">Dadus Rekapitulasaun</h5>
                 <div>
                     <form action="<?= base_url('administrador/relatoriu/export/prezensa') ?>" method="post" class="d-inline">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
@@ -68,6 +69,7 @@
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/prezensa') ?>" method="post" class="d-inline">
+                    <?= csrf_field() ?>
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
@@ -85,25 +87,31 @@
                                 <th>Funsionáriu</th>
                                 <th>Departamentu</th>
                                 <th class="text-center text-success">Prezente</th>
+                                <th class="text-center text-warning">Tardi</th>
                                 <th class="text-center text-danger">Falta</th>
                                 <th class="text-center text-info">Lisensa</th>
+                                <th class="text-center text-secondary">Incomplete</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php 
-                            $grand_prezente = 0; $grand_falta = 0; $grand_lisensa = 0;
+                            $grand_prezente = 0; $grand_tardi = 0; $grand_falta = 0; $grand_lisensa = 0; $grand_incomplete = 0;
                             foreach($prezensa as $p): 
                                 $grand_prezente += $p['total_prezente'];
+                                $grand_tardi += $p['total_tardi'];
                                 $grand_falta += $p['total_falta'];
                                 $grand_lisensa += $p['total_lisensa'];
+                                $grand_incomplete += $p['total_incomplete'];
                             ?>
                             <tr>
                                 <td><?= $p['nid'] ?></td>
                                 <td><?= $p['naran_kompletu'] ?></td>
                                 <td><?= $p['naran_departamentu'] ?></td>
                                 <td class="text-center"><?= $p['total_prezente'] ?></td>
+                                <td class="text-center"><?= $p['total_tardi'] ?></td>
                                 <td class="text-center"><?= $p['total_falta'] ?></td>
                                 <td class="text-center"><?= $p['total_lisensa'] ?></td>
+                                <td class="text-center"><?= $p['total_incomplete'] ?></td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -121,7 +129,7 @@
         var options = {
             series: [{
                 name: 'Total Loron',
-                data: [<?= $grand_prezente ?>, <?= $grand_falta ?>, <?= $grand_lisensa ?>]
+                data: [<?= $grand_prezente ?>, <?= $grand_tardi ?>, <?= $grand_falta ?>, <?= $grand_lisensa ?>, <?= $grand_incomplete ?>]
             }],
             chart: {
                 type: 'bar',
@@ -134,12 +142,12 @@
                     distributed: true,
                 }
             },
-            colors: ['#28a745', '#dc3545', '#17a2b8'],
+            colors: ['#28a745', '#f59e0b', '#dc3545', '#17a2b8', '#6c757d'],
             dataLabels: {
                 enabled: true
             },
             xaxis: {
-                categories: ['Prezente', 'Falta', 'Lisensa'],
+                categories: ['Prezente', 'Tardi', 'Falta', 'Lisensa', 'Incomplete'],
             },
 
             title: {

@@ -228,7 +228,7 @@ class HrisSchema extends Migration
             ],
             'estadu_prezensa' => [
                 'type'       => 'ENUM',
-                'constraint' => ['Prezente', 'Tardi', 'Falta', 'Lisensa'],
+                'constraint' => ['Prezente', 'Tardi', 'Falta', 'Lisensa', 'Incomplete', 'Holiday', 'Weekend'],
             ],
             'foto_tama' => [
                 'type'       => 'VARCHAR',
@@ -383,7 +383,7 @@ class HrisSchema extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '100',
             ],
-            'valór' => [
+            'valor' => [
                 'type'       => 'DECIMAL',
                 'constraint' => '10,2',
             ],

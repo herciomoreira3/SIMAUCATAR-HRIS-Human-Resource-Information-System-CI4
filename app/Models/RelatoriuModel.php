@@ -29,8 +29,10 @@ class RelatoriuModel extends Model
         $builder = $this->db->table('prezensa')
             ->select('funsionariu.nid, funsionariu.naran_kompletu, departamentu.naran_departamentu,
                       SUM(IF(estadu_prezensa = "Prezente", 1, 0)) as total_prezente,
+                      SUM(IF(estadu_prezensa = "Tardi", 1, 0)) as total_tardi,
                       SUM(IF(estadu_prezensa = "Falta", 1, 0)) as total_falta,
-                      SUM(IF(estadu_prezensa = "Lisensa", 1, 0)) as total_lisensa')
+                      SUM(IF(estadu_prezensa = "Lisensa", 1, 0)) as total_lisensa,
+                      SUM(IF(estadu_prezensa = "Incomplete", 1, 0)) as total_incomplete')
             ->join('funsionariu', 'prezensa.funsionariu_id = funsionariu.id')
             ->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')
             ->where('data_prezensa >=', $data_hahu)
@@ -59,8 +61,8 @@ class RelatoriuModel extends Model
         $builder = $this->db->table('lisensa')
             ->select('lisensa.*, funsionariu.nid, funsionariu.naran_kompletu')
             ->join('funsionariu', 'lisensa.funsionariu_id = funsionariu.id')
-            ->where('data_hahu >=', $data_hahu)
-            ->where('data_remata <=', $data_remata);
+            ->where('data_hahu <=', $data_remata)
+            ->where('data_remata >=', $data_hahu);
 
         if ($estadu) {
             $builder->where('estadu_lisensa', $estadu);

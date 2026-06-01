@@ -44,10 +44,11 @@
                                     <div class="modal fade" id="reviewModal<?= $l['id'] ?>" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <form action="<?= base_url('administrador/lisensa/aprova/'.$l['id']) ?>" method="post">
+                    <?= csrf_field() ?>
                                                 <div class="modal-content">
                                                     <div class="modal-header">
                                                         <h5 class="modal-title">Review Pedidu Lisensa</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                                     </div>
                                                     <div class="modal-body text-start">
                                                         <p><strong>Funsionáriu:</strong> <?= $l['naran_kompletu'] ?></p>

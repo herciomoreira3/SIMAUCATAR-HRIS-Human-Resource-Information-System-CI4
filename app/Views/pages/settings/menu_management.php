@@ -4,12 +4,12 @@
 <div class="container-fluid">
 	<div class="card">
 		<div class="card-header">
-			<h5 class="card-title mb-0">Create New Menu </h5>
+			<h5 class="card-title mb-0">Kria Menu Foun</h5>
 		</div>
 		<div class="card-body">
 			<ul class="nav nav-tabs" id="myTab" role="tablist">
 				<li class="nav-item" role="presentation">
-					<button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Menu Category</button>
+					<button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Kategoria Menu</button>
 				</li>
 				<li class="nav-item" role="presentation">
 					<button class="nav-link" id="menu-tab" data-bs-toggle="tab" data-bs-target="#menu" type="button" role="tab" aria-controls="menu" aria-selected="false">Menu</button>
@@ -26,7 +26,7 @@
 								<table class="table">
 									<thead>
 										<th>#</th>
-										<th>Menu Categories</th>
+										<th>Kategoria Menu</th>
 									</thead>
 									<tbody>
 										<?php
@@ -42,18 +42,19 @@
 								</table>
 							</div>
 							<div class="col-6">
-								<h5 class="fw-bold text-primary">Create New Menu Category</h5>
+								<h5 class="fw-bold text-primary">Kria Kategoria Menu Foun</h5>
 								<hr>
 								<form action="<?= base_url('menu-management/create-menu-category'); ?> " method="post">
+                    <?= csrf_field() ?>
 									<div class="mb-3">
-										<label for="inputMenuCategory" class="form-label">Add Menu Category</label>
-										<input type="text" class="form-control <?= ($validation->hasError('inputMenuCategory')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenuCategory'); ?>" id=" inputMenuCategory" name="inputMenuCategory" placeholder="Menu Category Name">
+										<label for="inputMenuCategory" class="form-label">Aumenta Kategoria Menu</label>
+										<input type="text" class="form-control <?= ($validation->hasError('inputMenuCategory')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenuCategory'); ?>" id=" inputMenuCategory" name="inputMenuCategory" placeholder="Naran Kategoria Menu">
 										<div class="invalid-feedback">
 											<?= $validation->getError('inputMenuCategory'); ?>
 										</div>
 									</div>
 									<div class="text-end">
-										<button class="btn btn-primary ">Save Menu Category</button>
+										<button class="btn btn-primary ">Rai Kategoria Menu</button>
 									</div>
 								</form>
 							</div>
@@ -67,9 +68,9 @@
 								<table class="table">
 									<thead>
 										<th>#</th>
-										<th>Menu Category</th>
-										<th>Menu Icon</th>
-										<th>Menu Title</th>
+										<th>Kategoria Menu</th>
+										<th>Ikone Menu</th>
+										<th>Titulu Menu</th>
 										<th>Menu Url</th>
 									</thead>
 									<tbody>
@@ -89,13 +90,14 @@
 								</table>
 							</div>
 							<div class="col-sm-6">
-								<h5 class="fw-bold text-primary">Create New Menu</h5>
+								<h5 class="fw-bold text-primary">Kria Menu Foun</h5>
 								<hr>
 								<form action="<?= base_url('menu-management/create-menu'); ?>" method="post">
+                    <?= csrf_field() ?>
 									<div class="mb-3">
-										<label for="inputMenuCategory2" class="form-label">Menu Category</label>
+										<label for="inputMenuCategory2" class="form-label">Kategoria Menu</label>
 										<select name="inputMenuCategory2" id="inputMenuCategory2" class="form-control <?= ($validation->hasError('inputMenuCategory2')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenuCategory2	'); ?>">
-											<option value=""> -- Choose Menu Category --</option>
+											<option value=""> -- Hili Kategoria Menu --</option>
 											<?php foreach ($MenuCategories as $menuCategory) : ?>
 												<option value="<?= $menuCategory['id']; ?>"><?= $menuCategory['menu_category']; ?></option>
 											<?php endforeach; ?>
@@ -105,7 +107,7 @@
 										</div>
 									</div>
 									<div class="mb-3">
-										<label for="inputMenuTitle" class="form-label">Menu Title</label>
+										<label for="inputMenuTitle" class="form-label">Titulu Menu</label>
 										<input type="text" class="form-control <?= ($validation->hasError('inputMenuTitle')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenuTitle'); ?>" id="inputMenuTitle" name="inputMenuTitle">
 										<div class="invalid-feedback">
 											<?= $validation->getError('inputMenuTitle'); ?>
@@ -119,14 +121,14 @@
 										</div>
 									</div>
 									<div class="mb-3">
-										<label for="inputMenuIcon" class="form-label">Menu Icon <a href="https://feathericons.com/" target="_blank" rel="noopener noreferrer">(Lookup References)</a> </label>
+										<label for="inputMenuIcon" class="form-label">Ikone Menu <a href="https://feathericons.com/" target="_blank" rel="noopener noreferrer">(Haree Referensia)</a> </label>
 										<input type="text" class="form-control <?= ($validation->hasError('inputMenuIcon')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenuIcon'); ?>" id="inputMenuIcon" name="inputMenuIcon">
 										<div class="invalid-feedback">
 											<?= $validation->getError('inputMenuIcon'); ?>
 										</div>
 									</div>
 									<div class="text-end mt-3">
-										<button class="btn btn-primary ">Save Menu</button>
+										<button class="btn btn-primary ">Rai Menu</button>
 									</div>
 								</form>
 							</div>
@@ -140,9 +142,9 @@
 								<table class="table">
 									<thead>
 										<th>#</th>
-										<th>Menu Category</th>
+										<th>Kategoria Menu</th>
 										<th>Menu </th>
-										<th>Submenu Title</th>
+										<th>Titulu Submenu</th>
 										<th>Submenu Url</th>
 									</thead>
 									<tbody>
@@ -162,13 +164,14 @@
 								</table>
 							</div>
 							<div class="col-sm-6">
-								<h5 class="fw-bold text-primary">Create New Submenu</h5>
+								<h5 class="fw-bold text-primary">Kria Submenu Foun</h5>
 								<hr>
 								<form action="<?= base_url('menu-management/create-submenu'); ?>" method="post">
+                    <?= csrf_field() ?>
 									<div class="mb-3">
-										<label for="inputMenu" class="form-label">Menu Parent</label>
+										<label for="inputMenu" class="form-label">Menu Inan</label>
 										<select name="inputMenu" id="inputMenu" class="form-control <?= ($validation->hasError('inputMenu')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputMenu'); ?>">
-											<option value=""> -- Choose Menu Parent --</option>
+											<option value=""> -- Hili Menu Inan --</option>
 											<?php foreach ($Menus as $menu) : ?>
 												<option value="<?= $menu['id']; ?>"><?= $menu['title']; ?></option>
 											<?php endforeach; ?>
@@ -178,7 +181,7 @@
 										</div>
 									</div>
 									<div class="mb-3">
-										<label for="inputSubmenuTitle" class="form-label">Submenu Title</label>
+										<label for="inputSubmenuTitle" class="form-label">Titulu Submenu</label>
 										<input type="text" class="form-control <?= ($validation->hasError('inputSubmenuTitle')) ? 'is-invalid' : ''; ?>" autofocus value="<?= old('inputSubmenuTitle'); ?>" id="inputSubmenuTitle" name="inputSubmenuTitle">
 										<div class="invalid-feedback">
 											<?= $validation->getError('inputSubmenuTitle'); ?>
@@ -192,7 +195,7 @@
 										</div>
 									</div>
 									<div class="text-end">
-										<button class="btn btn-primary">Save Submenu</button>
+										<button class="btn btn-primary">Rai Submenu</button>
 									</div>
 								</form>
 							</div>

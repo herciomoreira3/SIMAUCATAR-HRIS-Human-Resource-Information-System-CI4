@@ -128,7 +128,7 @@ class HrisSeeder extends Seeder
             ],
             [
                 'menu_category' => $catHR,
-                'title'         => 'Avizu',
+                'title'         => 'Anunsiu',
                 'url'           => 'administrador/avizu',
                 'icon'          => 'bell',
                 'parent'        => 0

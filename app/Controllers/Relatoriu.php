@@ -152,8 +152,8 @@ class Relatoriu extends BaseController
         if ($type == 'pdf') {
             return $this->generatePDF('pages/administrador/relatoriu/export/prezensa_pdf', $data, 'Relatoriu_Prezensa.pdf');
         } else {
-            return $this->generateCSV('Relatoriu_Prezensa.csv', ['NID', 'Naran Kompletu', 'Departamentu', 'Prezente', 'Falta', 'Lisensa'], $data['prezensa'], function($row) {
-                return [$row['nid'], $row['naran_kompletu'], $row['naran_departamentu'], $row['total_prezente'], $row['total_falta'], $row['total_lisensa']];
+            return $this->generateCSV('Relatoriu_Prezensa.csv', ['NID', 'Naran Kompletu', 'Departamentu', 'Prezente', 'Tardi', 'Falta', 'Lisensa', 'Incomplete'], $data['prezensa'], function($row) {
+                return [$row['nid'], $row['naran_kompletu'], $row['naran_departamentu'], $row['total_prezente'], $row['total_tardi'], $row['total_falta'], $row['total_lisensa'], $row['total_incomplete']];
             });
         }
     }

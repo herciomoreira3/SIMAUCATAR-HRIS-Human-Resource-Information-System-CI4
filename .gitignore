@@ -60,8 +60,14 @@ writable/session/*
 writable/uploads/*
 !writable/uploads/index.html
 
+writable/backups/*
+!writable/backups/index.html
+
 writable/debugbar/*
 !writable/debugbar/.gitkeep
+
+public/uploads/documentu/*
+!public/uploads/documentu/.gitkeep
 
 php_errors.log
 

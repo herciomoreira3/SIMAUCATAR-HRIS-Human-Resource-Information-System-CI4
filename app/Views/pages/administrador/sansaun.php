@@ -87,7 +87,11 @@
                                             <td><?= $ts['kategoria'] ?></td>
                                             <td><?= $ts['kategoria'] == 'Korta Saláriu' ? '$ '.number_format($ts['valor_dedusaun'], 2) : '-' ?></td>
                                             <td>
-                                                <a href="<?= base_url('administrador/tipu_sansaun/delete/'.$ts['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos tipu sansaun ne\'e?')">Hamos</a>
+                                                <form action="<?= base_url('administrador/tipu_sansaun/delete/'.$ts['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos tipu sansaun ne\'e?')">
+                                                    <?= csrf_field() ?>
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
+                                                </form>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -108,7 +112,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title text-white">Hili Funsionáriu atu fo Sansaun</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
@@ -151,10 +155,11 @@
 <div class="modal fade" id="addTipuSansaunModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="<?= base_url('administrador/tipu_sansaun') ?>" method="post">
+                    <?= csrf_field() ?>
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title text-white">Aumenta Tipu Sansaun Foun</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -163,8 +168,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Kategoria</label>
-                        <select name="kategoria" class="form-select" id="selectKategoria" onchange="toggleValórField()">
-                            <option value="Jeral">Jeral (Avizu, nst)</option>
+                        <select name="kategoria" class="form-select" id="selectKategoria" onchange="toggleValorField()">
+                            <option value="Jeral">Jeral (Anunsiu, nst)</option>
                             <option value="Korta Saláriu">Korta Saláriu (Salary Deduction)</option>
                             <option value="Hatun Pozisaun">Hatun Pozisaun (Demotion)</option>
                         </select>
@@ -187,10 +192,11 @@
 <div class="modal fade" id="addSansaunModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <form action="<?= base_url('administrador/sansaun') ?>" method="post">
+                    <?= csrf_field() ?>
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title text-white" id="sansaunModalTitle">Fo Sansaun ba Funsionáriu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="funsionariu_id" id="targetFunsionariuId">
@@ -245,7 +251,7 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title text-white">Detallu Sansaun</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
             </div>
             <div class="modal-body">
                 <table class="table table-sm">
@@ -285,7 +291,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Taka</button>
-                <a href="#" id="btnRetiraSansaun" class="btn btn-warning d-none" onclick="return confirm('Retira sansaun ne\'e? Dedusaun sei para automatikamente.')">Retira Sansaun</a>
+                <form action="#" method="post" id="formRetiraSansaun" class="d-inline d-none" onsubmit="return confirm('Retira sansaun ne\'e? Dedusaun sei para automatikamente.')">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="retira_reason" value="Retira husi review sansaun">
+                    <button type="submit" id="btnRetiraSansaun" class="btn btn-warning">Retira Sansaun</button>
+                </form>
             </div>
         </div>
     </div>
@@ -295,10 +305,11 @@
 <div class="modal fade" id="geraSansaunAbsensiaModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="<?= base_url('administrador/sansaun/jera_absensia') ?>" method="post">
+                    <?= csrf_field() ?>
             <div class="modal-content">
                 <div class="modal-header bg-warning">
                     <h5 class="modal-title">Jera Sansaun Absénsia Automátiku</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <p>Sistema sei kalkula automatikamente falta husi funsionáriu hotu iha fulan ne'ebé hili. Funsionáriu ne'ebé falta dala 3 ka liu sei hetan korta saláriu 0.9% ba kada falta dala 3.</p>
@@ -360,12 +371,12 @@
                             document.getElementById('revPagaduRow').classList.add('d-none');
                         }
 
-                        const btnRetira = document.getElementById('btnRetiraSansaun');
+                        const formRetira = document.getElementById('formRetiraSansaun');
                         if (data.estadu_sansaun === 'Ativu') {
-                            btnRetira.classList.remove('d-none');
-                            btnRetira.setAttribute('href', '<?= base_url('administrador/sansaun/retira/') ?>' + data.id);
+                            formRetira.classList.remove('d-none');
+                            formRetira.setAttribute('action', '<?= base_url('administrador/sansaun/retira/') ?>' + data.id);
                         } else {
-                            btnRetira.classList.add('d-none');
+                            formRetira.classList.add('d-none');
                         }
 
                         new bootstrap.Modal(document.getElementById('reviewSansaunModal')).show();
@@ -414,7 +425,7 @@
         }
     });
 
-    function toggleValórField() {
+    function toggleValorField() {
         const kat = document.getElementById('selectKategoria').value;
         const field = document.getElementById('valorField');
         if (kat === 'Korta Saláriu') {
@@ -441,4 +452,3 @@
 </script>
 
 <?= $this->endSection(); ?>
-

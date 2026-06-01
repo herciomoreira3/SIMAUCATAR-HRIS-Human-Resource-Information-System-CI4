@@ -5,14 +5,14 @@
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -21,7 +21,9 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="card-title mb-0">Lista Funsionáriu 
-                    <button class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#modalAddFunsionariu">Aumenta Funsionáriu</button>
+                    <button type="button" class="btn btn-primary btn-sm float-end" data-bs-toggle="modal" data-bs-target="#modalAddFunsionariu">Aumenta Funsionáriu</button>
+                    <button type="button" class="btn btn-secondary btn-sm float-end me-2" data-bs-toggle="modal" data-bs-target="#modalImportFunsionariu">Importa CSV</button>
+                    <a href="<?= base_url('administrador/funsionariu/template') ?>" class="btn btn-outline-secondary btn-sm float-end me-2">Modelu</a>
                 </h5>
             </div>
             <div class="card-body">
@@ -50,9 +52,14 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail<?= $f['id'] ?>">Detallu</button>
-                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalUpdate<?= $f['id'] ?>">Update</button>
-                                    <a href="<?= base_url('administrador/funsionariu/delete/'.$f['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos funsionáriu <?= $f['naran_kompletu'] ?> no nia akun utilizador?')">Hamos</a>
+                                    <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalDetail<?= $f['id'] ?>">Detallu</button>
+                                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalUpdate<?= $f['id'] ?>">Atualiza</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalResetPassword<?= $f['id'] ?>">Troka Senha</button>
+                                    <form action="<?= base_url('administrador/funsionariu/delete/'.$f['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos funsionariu <?= $f['naran_kompletu'] ?> no nia akun utilizador?')">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
+                                    </form>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -64,6 +71,31 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalImportFunsionariu" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= base_url('administrador/funsionariu/import') ?>" method="post" enctype="multipart/form-data">
+                <?= csrf_field() ?>
+                <div class="modal-header">
+                    <h5 class="modal-title">Importa Funsionariu CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Fail CSV</label>
+                        <input type="file" name="file_import" class="form-control" accept=".csv,.txt" required>
+                    </div>
+                    <a href="<?= base_url('administrador/funsionariu/template') ?>" class="btn btn-outline-secondary btn-sm">Hatun Modelu</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kansela</button>
+                    <button type="submit" class="btn btn-primary">Importa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <?php foreach($funsionariu as $f): ?>
 <!-- Modal Detail -->
 <div class="modal fade" id="modalDetail<?= $f['id'] ?>" tabindex="-1" aria-hidden="true">
@@ -71,7 +103,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Detallu Funsionáriu: <?= $f['naran_kompletu'] ?></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -95,7 +127,7 @@
                             <tr><th>Pozisaun</th><td>: <?= $f['naran_pozisaun'] ?></td></tr>
                             <tr><th>Kategoria</th><td>: <?= $f['naran_kategoria'] ?></td></tr>
                             <tr><th>Data Hahu Servisu</th><td>: <?= !empty($f['data_hahu_servisu']) ? date('d-m-Y', strtotime($f['data_hahu_servisu'])) : '-' ?></td></tr>
-                            <tr><th>Username</th><td>: <?= $f['naran_utilizador'] ?></td></tr>
+                            <tr><th>Naran Utilizador</th><td>: <?= $f['naran_utilizador'] ?></td></tr>
                             <tr><th>Estadu Akun</th><td>: <span class="badge bg-success"><?= $f['estadu_kontu'] ?? 'Ativu' ?></span></td></tr>
                         </table>
                     </div>
@@ -105,14 +137,43 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalResetPassword<?= $f['id'] ?>" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= base_url('administrador/funsionariu/reset-password/'.$f['id']) ?>" method="post">
+                <?= csrf_field() ?>
+                <div class="modal-header">
+                    <h5 class="modal-title">Troka Senha: <?= esc($f['naran_kompletu']) ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Senha Foun</label>
+                        <input type="password" name="password_baru" class="form-control" minlength="8" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Konfirma Senha</label>
+                        <input type="password" name="password_konfirma" class="form-control" minlength="8" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kansela</button>
+                    <button type="submit" class="btn btn-primary">Troka</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Update -->
 <div class="modal fade" id="modalUpdate<?= $f['id'] ?>" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="<?= base_url('administrador/funsionariu/update/'.$f['id']) ?>" method="post" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Atualiza Dadus Funsionáriu</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -189,18 +250,18 @@
                         </div>
                         <div class="col-12 mb-3">
                             <hr>
-                            <h6>Informasaun Akun Login</h6>
+                            <h6>Informasaun Akun Tama</h6>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Username</label>
+                            <label class="form-label">Naran Utilizador</label>
                             <input type="text" name="username" class="form-control" value="<?= $f['naran_utilizador'] ?>" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Password (Vazia se lakohi troka)</label>
+                            <label class="form-label">Senha (husik mamuk se lakohi troka)</label>
                             <input type="password" name="password" class="form-control">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Papel (Role)</label>
+                            <label class="form-label">Papel</label>
                             <select name="papel_id" class="form-select" required>
                                 <?php foreach($papel as $pl): ?>
                                 <option value="<?= $pl['id'] ?>" <?= $f['role_id'] == $pl['id'] ? 'selected' : '' ?>><?= $pl['role_name'] ?></option>
@@ -224,9 +285,10 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="<?= base_url('administrador/funsionariu') ?>" method="post" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
                 <div class="modal-header">
                     <h5 class="modal-title">Formuláriu Funsionáriu Foun</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -303,18 +365,18 @@
                         </div>
                         <div class="col-12 mb-3">
                             <hr>
-                            <h6>Informasaun Akun Login</h6>
+                            <h6>Informasaun Akun Tama</h6>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Username</label>
+                            <label class="form-label">Naran Utilizador</label>
                             <input type="text" name="username" class="form-control" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Password</label>
+                            <label class="form-label">Senha</label>
                             <input type="password" name="password" class="form-control" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Papel (Role)</label>
+                            <label class="form-label">Papel</label>
                             <select name="papel_id" class="form-select" required>
                                 <?php foreach($papel as $pl): ?>
                                 <option value="<?= $pl['id'] ?>"><?= $pl['role_name'] ?></option>

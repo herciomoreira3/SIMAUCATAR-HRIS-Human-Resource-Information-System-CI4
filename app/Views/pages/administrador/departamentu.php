@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main'); ?>
+﻿<?= $this->extend('layouts/main'); ?>
 <?= $this->section('content'); ?>
 <div class="row mb-4">
     <div class="col-12">
@@ -13,7 +13,7 @@
             <i data-feather="check-circle" class="me-2" style="width: 18px;"></i>
             <?= session()->getFlashdata('success') ?>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -23,7 +23,7 @@
             <i data-feather="alert-octagon" class="me-2" style="width: 18px;"></i>
             <?= session()->getFlashdata('error') ?>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -35,6 +35,7 @@
             </div>
             <div class="card-body">
                 <form action="<?= base_url('administrador/departamentu') ?>" method="post">
+                    <?= csrf_field() ?>
                     <div class="mb-4">
                         <label class="form-label">Naran Departamentu</label>
                         <input type="text" name="naran_departamentu" class="form-control" placeholder="Eskrebe naran departamentu..." required>
@@ -66,15 +67,19 @@
                             <?php foreach($departamentu as $i => $d): ?>
                             <tr>
                                 <td><span class="text-muted"><?= $i+1 ?></span></td>
-                                <td class="font-medium text-dark"><?= $d['naran_departamentu'] ?></td>
+                                <td class="font-medium text-dark"><?= esc($d['naran_departamentu']) ?></td>
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end gap-2">
-                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $d['id'] ?>">
+                                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $d['id'] ?>">
                                             <i data-feather="edit-2" style="width: 14px; height: 14px;"></i>
                                         </button>
-                                        <a href="<?= base_url('administrador/departamentu/delete/'.$d['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos departamentu <?= $d['naran_departamentu'] ?>?')">
-                                            <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
-                                        </a>
+                                        <form action="<?= base_url('administrador/departamentu/delete/'.$d['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos departamentu ne\'e?')">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i data-feather="trash-2" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -84,14 +89,15 @@
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content shadow-lg">
                                         <form action="<?= base_url('administrador/departamentu/update/'.$d['id']) ?>" method="post">
+                    <?= csrf_field() ?>
                                             <div class="modal-header bg-light">
                                                 <h5 class="modal-title font-medium">Edit Departamentu</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                             </div>
                                             <div class="modal-body p-4">
                                                 <div class="mb-0">
                                                     <label class="form-label">Naran Departamentu</label>
-                                                    <input type="text" name="naran_departamentu" class="form-control" value="<?= $d['naran_departamentu'] ?>" required>
+                                                    <input type="text" name="naran_departamentu" class="form-control" value="<?= esc($d['naran_departamentu']) ?>" required>
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-top-0">

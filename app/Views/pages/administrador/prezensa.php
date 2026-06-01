@@ -5,14 +5,14 @@
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -24,6 +24,7 @@
             </div>
             <div class="card-body">
                 <form action="<?= base_url('administrador/prezensa/settings') ?>" method="post">
+                    <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Check-In Hahu (Tama)</label>
                         <input type="time" name="tama_hahu" class="form-control" value="<?= $settings['tama_hahu'] ?? '08:00' ?>" required>
@@ -51,15 +52,17 @@
                             <label class="form-check-label" for="domingu">Domingu</label>
                         </div>
                     </div>
-                    <!-- Tolerance removed as per user request -->
-                    <input type="hidden" name="toleransia_minutu" value="0">
+                    <div class="mb-3">
+                        <label class="form-label">Toleransia Tardi (minutu)</label>
+                        <input type="number" min="0" max="240" name="toleransia_minutu" class="form-control" value="<?= $settings['toleransia_minutu'] ?? 15 ?>" required>
+                    </div>
 
                     
                     <button type="submit" class="btn btn-primary w-100">Atualiza Konfigurasaun</button>
                 </form>
                 <div class="mt-3 small text-muted">
                     <i class="align-middle" data-feather="info"></i> 
-                    Funsionáriu ne'ebé la absénte tama to'o oras remata sei konsidera <strong>Falta</strong> automatikamente.
+                    Prosesu mark absent agora dijalankan lewat command <code>php spark attendance:mark-absent</code>, bukan setiap halaman dibuka.
                 </div>
             </div>
         </div>
@@ -98,6 +101,7 @@
                                         elseif ($status == 'Tardi') $badgeClass = 'warning';
                                         elseif ($status == 'Lisensa') $badgeClass = 'info';
                                         elseif ($status == 'Falta') $badgeClass = 'danger';
+                                        elseif ($status == 'Incomplete') $badgeClass = 'secondary';
                                     ?>
                                     <span class="badge bg-<?= $badgeClass ?>">
                                         <?= $status ?>

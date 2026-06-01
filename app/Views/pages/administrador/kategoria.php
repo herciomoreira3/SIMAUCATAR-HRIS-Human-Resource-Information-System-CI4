@@ -1,18 +1,18 @@
-<?= $this->extend('layouts/main'); ?>
+﻿<?= $this->extend('layouts/main'); ?>
 <?= $this->section('content'); ?>
 <h1 class="h3 mb-3"><strong>Jestaun</strong> Kategoria</h1>
 
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('success') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('error')) : ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <?= session()->getFlashdata('error') ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Taka"></button>
     </div>
 <?php endif; ?>
 
@@ -24,6 +24,7 @@
             </div>
             <div class="card-body">
                 <form action="<?= base_url('administrador/kategoria') ?>" method="post">
+                    <?= csrf_field() ?>
                     <div class="mb-3">
                         <label class="form-label">Naran Kategoria</label>
                         <input type="text" name="naran_kategoria" class="form-control" required>
@@ -51,10 +52,14 @@
                         <?php foreach($kategoria as $i => $k): ?>
                         <tr>
                             <td><?= $i+1 ?></td>
-                            <td><?= $k['naran_kategoria'] ?></td>
+                            <td><?= esc($k['naran_kategoria']) ?></td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $k['id'] ?>">Edit</button>
-                                <a href="<?= base_url('administrador/kategoria/delete/'.$k['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hamos kategoria <?= $k['naran_kategoria'] ?>?')">Hamos</a>
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $k['id'] ?>">Edit</button>
+                                <form action="<?= base_url('administrador/kategoria/delete/'.$k['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos kategoria ne\'e?')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
+                                </form>
                             </td>
                         </tr>
 
@@ -63,14 +68,15 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <form action="<?= base_url('administrador/kategoria/update/'.$k['id']) ?>" method="post">
+                    <?= csrf_field() ?>
                                         <div class="modal-header">
                                             <h5 class="modal-title">Edit Kategoria</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div class="mb-3">
                                                 <label class="form-label">Naran Kategoria</label>
-                                                <input type="text" name="naran_kategoria" class="form-control" value="<?= $k['naran_kategoria'] ?>" required>
+                                                <input type="text" name="naran_kategoria" class="form-control" value="<?= esc($k['naran_kategoria']) ?>" required>
                                             </div>
                                         </div>
                                         <div class="modal-footer">

@@ -77,7 +77,7 @@ class Filters extends BaseFilters
             'isLoggedIn' => ['except' => ['/', 'register', 'login']],
             'isGranted'  => ['except' => ['/', 'register', 'login', 'logout', 'blocked']],
             // 'honeypot',
-            // 'csrf',
+            'csrf',
             // 'invalidchars',
         ],
         'after' => [
