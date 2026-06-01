@@ -2,124 +2,128 @@
 
 **Sistema Jestaun Funsionáriu ba Postu Administrativu Maucatar.**
 
-SIMAUCATAR mak aplikasaun HRIS lokál ho CodeIgniter 4 hodi ajuda administrasaun Maucatar jere funsionáriu, prezensa, lisensa, saláriu, dokumentu, anunsiu, sansaun, audit log, backup, no relatóriu iha sistema ida deit.
+SIMAUCATAR mak aplikasaun HRIS lokál ne'ebé harii ho CodeIgniter 4 atu ajuda administrasaun Postu Administrativu Maucatar jere dadus funsionáriu, prezensa, lisensa, salariu, dokumentu, anunsiu, sansaun, audit log, backup, no relatóriu iha plataforma ida de'it.
 
 ![CodeIgniter](https://img.shields.io/badge/CodeIgniter_4-EF4223?style=for-the-badge&logo=codeigniter&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP_8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL%20%2F%20MariaDB-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![ApexCharts](https://img.shields.io/badge/ApexCharts-2563EB?style=for-the-badge&logo=apachespark&logoColor=white)
 ![PHPUnit](https://img.shields.io/badge/PHPUnit-366488?style=for-the-badge&logo=php&logoColor=white)
 
-![Lian Tetun](https://img.shields.io/badge/Lian-Tetun-16A34A?style=flat-square)
-![Domíniu HRIS](https://img.shields.io/badge/Domíniu-HRIS-0F766E?style=flat-square)
-![Seguransa RBAC](https://img.shields.io/badge/Seguransa-RBAC-7C3AED?style=flat-square)
-![CSRF](https://img.shields.io/badge/Seguransa-CSRF-DC2626?style=flat-square)
-![Lokal Primeiro](https://img.shields.io/badge/Implantasaun-Lokál-F59E0B?style=flat-square)
+![Lian](https://img.shields.io/badge/Lian-Tetun-16A34A?style=flat-square)
+![Dominio](https://img.shields.io/badge/Dom%C3%ADniu-HRIS-0F766E?style=flat-square)
+![Seguransa](https://img.shields.io/badge/Seguransa-RBAC%20%2B%20CSRF-7C3AED?style=flat-square)
+![Implantasaun](https://img.shields.io/badge/Implantasaun-Lok%C3%A1l-F59E0B?style=flat-square)
 
 ---
 
 ## Kona-ba Projetu
 
-SIMAUCATAR dezenvolve hodi suporta prosesu rekursu umanu iha Postu Administrativu Maucatar. Sistema ida-ne'e fó fatin ba admin no funsionáriu hodi halo servisu loroloron ho dadus ne'ebé konsistente, fasil atu buka, no bele audit.
+Projetu ida-ne'e fó fatin ba administrador no funsionáriu atu halo prosesu rekursu umanu loroloron ho dadus ne'ebé ordenadu, fasil atu buka, no bele audit. Sistema fó prioridade ba kontestu lokál: label, menu, relatóriu, no fluxu servisu uza lian Tetun atu utilizadór bele komprende ho lalais.
 
-- Administradór bele jere funsionáriu, departamentu, pozisaun, kategoria, prezensa, lisensa, saláriu, dokumentu, anunsiu, sansaun, relatóriu, audit log, no backup.
-- Funsionáriu bele haree painel rasik, halo clock in/out, haruka pedidu lisensa, haree dokumentu, haree resibu saláriu, no atualiza perfil.
-- Sistema uza kontrolu asesu bazeia ba papel, CSRF, hash senha, audit trail, no route mutasaun ho method seguru.
-- Label aplikasaun orienta ba lian Tetun atu hatán ba kontestu operasionál lokál.
+SIMAUCATAR ajuda ekipa administrasaun atu:
+
+- Rai no atualiza perfil funsionáriu.
+- Jere departamentu, pozisaun, kategoria, no estrutura organizasaun.
+- Kontrola prezensa, feriadu, lisensa, no saldo lisensa.
+- Prosesa salariu, subsidiu, deskontu, no periodu payroll.
+- Upload dokumentu no regula visibilidade dokumentu.
+- Publika anunsiu, rejista sansaun, no haree audit log.
+- Jera relatóriu no exporta dadus ba PDF ka CSV.
 
 ## Teknolojia ne'ebé Uza
 
-| Kategoria | Teknolojia | Funsaun |
+| Kategoria | Teknolojia | Funsaun iha Sistema |
 | --- | --- | --- |
-| Backend | CodeIgniter 4 | Routing, controller, filter, migration, no service aplikasaun |
-| Linguajen | PHP 8.1+ | Lójika HRIS, validasaun, session, no prosesu server-side |
-| Baze Dadus | MySQL / MariaDB | Rai dadus funsionáriu, prezensa, payroll, dokumentu, audit, no menu |
+| Framework | CodeIgniter 4 | Routing, controller, filter, migration, seeder, no service aplikasaun |
+| Linguajen | PHP 8.1+ | Lójika server-side, validasaun, session, seguransa, no prosesu HRIS |
+| Baze Dadus | MySQL / MariaDB | Rai dadus funsionáriu, prezensa, lisensa, salariu, dokumentu, audit, no menu |
 | Frontend | Bootstrap 5 | Layout painel, form, modal, tabela, no komponente responsivu |
-| Gráfiku | ApexCharts | Vizualizasaun dadus iha painel admin no funsionáriu |
-| Tabela | DataTables | Buka, ordena, no pagina dadus operasionál |
-| Alert | SweetAlert2 / Notyf | Feedback visual ba asaun utilizadór |
-| Dokumentu | DomPDF | Jera no exporta relatóriu PDF |
+| Gráfiku | ApexCharts / Chart.js | Vizualizasaun dadus dashboard no tendénsia prezensa |
+| Tabela | DataTables | Buka, ordena, filtra, no pagina dadus operasionál |
+| Notifikasaun UI | Notyf / SweetAlert2 | Feedback ba asaun utilizadór |
+| PDF | DomPDF | Exporta relatóriu ba PDF |
 | Spreadsheet | PhpSpreadsheet | Importa no exporta dadus CSV/Excel |
-| Testing | PHPUnit | Test automatizadu no guard ba regressaun |
-| CLI | Spark Commands | Migration, server lokál, no command prezensa automátiku |
+| Testing | PHPUnit | Test automatizadu atu prevene regressaun |
+| CLI | Spark Commands | Migration, server lokál, routes, no command prezensa automátiku |
 
 ## Funsaun Prinsipál
 
-### Painel Administradór
+### Painel Administrador
 
 - Kartu resumu ba total funsionáriu, prezensa ohin, lisensa pendente, no anunsiu.
-- Gráfiku tendénsia prezensa loron 15 ikus ba `Prezente`, `Tardi`, `Falta`, no `Lisensa`.
-- Gráfiku kompozisaun departamentu.
-- Lista anunsiu ikus no sansaun foun.
+- Gráfiku tendénsia prezensa ba `Prezente`, `Tardi`, `Falta`, no `Lisensa`.
+- Kompozisaun funsionáriu tuir departamentu.
+- Lista anunsiu ikus, sansaun foun, no dadus operasionál ne'ebé presiza atensaun.
 
 ### Jestaun Funsionáriu
 
 - CRUD dadus funsionáriu ho departamentu, pozisaun, kategoria, status, no akun login.
-- Importa dadus funsionáriu husi CSV.
-- Template import CSV hodi fó formatu dadus ne'ebé loos.
-- Reset senha funsionáriu husi administradór.
-- Upload foto perfil funsionáriu.
+- Importa dadus funsionáriu husi CSV/Excel.
+- Download template import atu ajuda formatu dadus sai loos.
+- Reset senha funsionáriu husi administrador.
+- Upload no atualiza foto perfil.
 
 ### Prezensa
 
 - Clock in no clock out ba funsionáriu.
-- Konfigurasaun oras prezensa, toleránsia, loron semana, no feriadu.
-- Auto-mark absent liuhusi command `attendance:mark-absent`.
-- Istória prezensa ba administradór no funsionáriu.
+- Konfigurasaun oras tama, oras sai, toleránsia, loron servisu, no feriadu.
+- Command `attendance:mark-absent` atu marka falta ba funsionáriu ne'ebé la halo prezensa.
+- Istória prezensa ba administrador no funsionáriu.
 
 ### Lisensa
 
-- Pedidu lisensa online husi funsionáriu.
-- Aprovasaun ka rejeisaun husi administradór ho komentáriu.
-- Validasaun saldo lisensa no konfliktu ho prezensa.
-- Rekalkulasaun leave balance bainhira estadu lisensa muda.
+- Funsionáriu bele haruka pedidu lisensa online.
+- Administrador bele aprova ka rejeita pedidu ho komentáriu.
+- Sistema halo validasaun saldo lisensa no konfliktu ho prezensa.
+- Saldo lisensa bele jera no atualiza husi painel administrador.
 
-### Saláriu
+### Salariu
 
-- Prosesu saláriu ba kada funsionáriu, fulan, no tinan.
-- Komponente subsidiu no deskontu.
-- Integrasaun sansaun hodi kalkula potongan.
-- Payroll period lock/unlock hodi proteje dadus periodu ne'ebé remata ona.
-- Resibu saláriu ba funsionáriu ida-idak.
-
-### Anunsiu
-
-- Menu `Anunsiu` sai sentru ba komunikasaun no avizu sistema.
-- Header bell hatudu anunsiu foun.
-- Fitur notifikasaun separadu halo ona merge ba Anunsiu atu evita menu duplikadu.
-- Anunsiu bele iha tempu remata atu la mosu tan iha header bainhira tempu liu ona.
+- Prosesa salariu ba funsionáriu tuir fulan no tinan.
+- Suporta salariu baziku, subsidiu, deskontu, no potongan sansaun.
+- Periodu payroll bele `lock` no `unlock` atu proteje dadus ne'ebé remata ona.
+- Funsionáriu bele haree resibu salariu rasik.
 
 ### Dokumentu
 
-- Administradór bele upload dokumentu funsionáriu.
-- Kategoria dokumentu bele konfiguradu.
-- Visibilidade dokumentu bele `admin_only` ka `employee_visible`.
-- Funsionáriu haree deit dokumentu ne'ebé administradór loke ba nia.
+- Administrador bele upload dokumentu funsionáriu.
+- Kategoria dokumentu bele jere husi painel administrador.
+- Dokumentu bele tau hanesan `admin_only` ka `employee_visible`.
+- Funsionáriu haree de'it dokumentu ne'ebé administrador fó asesu.
 
-### Audit, Backup, no Relatóriu
+### Anunsiu, Sansaun, Audit, no Manutensaun
 
-- Audit log ba asaun importante.
-- Backup baze dadus husi UI Manutensaun.
-- Restore SQL husi UI Manutensaun.
-- Relatóriu funsionáriu, prezensa, lisensa, saláriu, no sansaun.
+- Anunsiu sai sentru komunikasaun ba avizu sistema.
+- Sansaun bele rejista, haree detalle, retira, ka jera husi absénsia.
+- Audit log rai asaun importante iha sistema.
+- Manutensaun suporta backup no restore baze dadus.
+
+### Relatóriu
+
+- Relatóriu funsionáriu.
+- Relatóriu prezensa.
+- Relatóriu lisensa.
+- Relatóriu salariu.
+- Relatóriu sansaun.
 - Exporta relatóriu ba PDF no CSV.
 
 ## Fluxu Sistema
 
 ```mermaid
 flowchart LR
-    A[Administradór] --> B[Jestaun Funsionáriu]
-    A --> C[Prezensa no Feriadu]
-    A --> D[Aprovasaun Lisensa]
-    A --> E[Payroll]
-    A --> F[Anunsiu]
-    A --> G[Relatóriu no Audit]
-    H[Funsionáriu] --> I[Clock In / Clock Out]
-    H --> J[Pedidu Lisensa]
-    H --> K[Haree Saláriu]
-    H --> L[Haree Dokumentu]
-    B --> M[(MySQL)]
+    A["Administrador"] --> B["Jestaun Funsionáriu"]
+    A --> C["Prezensa no Feriadu"]
+    A --> D["Aprovasaun Lisensa"]
+    A --> E["Payroll no Sansaun"]
+    A --> F["Anunsiu no Dokumentu"]
+    A --> G["Relatóriu no Audit"]
+    H["Funsionáriu"] --> I["Clock In / Clock Out"]
+    H --> J["Pedidu Lisensa"]
+    H --> K["Haree Salariu"]
+    H --> L["Haree Dokumentu"]
+    B --> M[("MySQL / MariaDB")]
     C --> M
     D --> M
     E --> M
@@ -130,42 +134,72 @@ flowchart LR
 ## Estrutura Projetu
 
 ```text
-simaucatar/
+SIMAUCATAR-HRIS-Human-Resource-Information-System-CI4/
 |-- app/
 |   |-- Commands/              # Command CLI hanesan attendance:mark-absent
 |   |-- Config/                # Routes, filters, database, no konfigurasaun CI4
 |   |-- Controllers/           # Auth, Administrador, Funsionariu, Relatoriu, Settings
 |   |-- Database/
-|   |   |-- Migrations/        # Skema no atualizasaun baze dadus
-|   |   `-- Seeds/             # Dadus inisiál ba role, menu, no sistema
-|   |-- Filters/               # Guard login no autorizasaun
+|   |   |-- Migrations/        # Skema no alterasaun baze dadus
+|   |   `-- Seeds/             # Dadus inisiál ba role, menu, no HRIS
+|   |-- Filters/               # Authentication no authorization
+|   |-- Helpers/               # Helper menu no user access
 |   |-- Models/                # Query aplikasaun no relatóriu
 |   `-- Views/
 |       |-- layouts/           # Layout prinsipál, sidebar, header, footer
-|       |-- pages/             # Pajina administradór, funsionáriu, commons, settings
+|       |-- pages/             # Pajina administrador, funsionáriu, commons, settings
 |       `-- widgets/           # Modal no form reutilizável
 |-- public/
-|   |-- assets/                # CSS, JS, icon, no bundle frontend
-|   `-- uploads/               # Upload foto perfil no dokumentu
+|   |-- assets/                # CSS, JS, imagem, no bundle frontend
+|   `-- uploads/               # Upload foto perfil, dokumentu, no lisensa
 |-- tests/
-|   `-- unit/                  # PHPUnit test
-|-- writable/                  # Cache, log, session, backup
+|   `-- unit/                  # PHPUnit test ba HRIS
+|-- writable/                  # Cache, log, session, upload, no backup
 |-- composer.json
 |-- README.md
 `-- spark
 ```
 
+## Rekerimentu
+
+- PHP 8.1 ka liu.
+- Composer.
+- MySQL ka MariaDB.
+- Ekstensaun PHP ne'ebé CodeIgniter 4 presiza, hanesan `intl`, `mbstring`, `json`, `mysqlnd`, no `curl`.
+- Web browser modernu.
+
 ## Oinsá Halai iha Lokál
 
-### 1. Instala Dependénsia
+### 1. Clone Projetu
+
+```bash
+git clone https://github.com/herciomoreira3/SIMAUCATAR-HRIS-Human-Resource-Information-System-CI4.git
+cd SIMAUCATAR-HRIS-Human-Resource-Information-System-CI4
+```
+
+### 2. Instala Dependénsia
 
 ```bash
 composer install
 ```
 
-### 2. Konfigura `.env`
+### 3. Kria `.env`
 
-Konfigurasaun prinsipál iha `.env`:
+Kopia file `env` ba `.env`:
+
+```bash
+cp env .env
+```
+
+Iha Windows PowerShell:
+
+```powershell
+Copy-Item env .env
+```
+
+### 4. Konfigura Ambiente
+
+Atualiza `.env`:
 
 ```ini
 CI_ENVIRONMENT = development
@@ -176,30 +210,34 @@ database.default.database = starterpanel
 database.default.username = root
 database.default.password = <senha-mysql-lokál>
 database.default.DBDriver = MySQLi
+database.default.port = 3306
 ```
 
-### 3. Halai Migration
+### 5. Kria Baze Dadus
+
+Kria database:
+
+```sql
+CREATE DATABASE starterpanel CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### 6. Halai Migration
 
 ```bash
 php spark migrate
 ```
 
-Iha Windows, se `php` seidauk hetan iha PATH:
+### 7. Halai Seeder
 
-```powershell
-C:\php\php.exe spark migrate
+```bash
+php spark db:seed Users
+php spark db:seed HrisSeeder
 ```
 
-### 4. Hahu Server Lokál
+### 8. Hahu Server Lokál
 
 ```bash
 php spark serve
-```
-
-Ka uza path PHP diretamente:
-
-```powershell
-C:\php\php.exe spark serve
 ```
 
 Aplikasaun bele asesu iha:
@@ -210,16 +248,18 @@ http://localhost:8080
 
 ## Login Lokál
 
+Login administrador HRIS:
+
 ```text
 Username: admin
 Password: admin123
 ```
 
-Alternativu:
+Login developer husi seeder base:
 
 ```text
-Username: admin@gmail.com
-Password: admin123
+Username: developer@mail.io
+Password: 123456
 ```
 
 ## Komandu Util
@@ -228,16 +268,19 @@ Password: admin123
 php spark serve
 php spark migrate
 php spark migrate:status
+php spark db:seed Users
+php spark db:seed HrisSeeder
 php spark attendance:mark-absent
 php spark routes
 vendor/bin/phpunit --no-coverage
 ```
 
-Windows:
+Iha Windows, se `php` la iha `PATH`, uza path PHP diretamente:
 
 ```powershell
 C:\php\php.exe spark serve
 C:\php\php.exe spark migrate
+C:\php\php.exe spark attendance:mark-absent
 C:\php\php.exe vendor\phpunit\phpunit\phpunit --no-coverage
 ```
 
@@ -250,27 +293,38 @@ node --check public/assets/js/app.js
 vendor/bin/phpunit --no-coverage
 ```
 
-Test automatizadu ne'ebé iha:
+Test automatizadu iha repo ne'e haree ba:
 
-- Route mutasaun uza method seguru.
-- Módulu audit, maintenance, feriadu, leave balance, documentu, no anunsiu konekta ona.
+- Konta loron lisensa inkluzivu.
+- Route sensível uza HTTP method ne'ebé seguru.
+- Módulu audit, maintenance, feriadu, leave balance, dokumentu, no anunsiu konekta ona.
 - Form POST hotu uza CSRF.
+- Notifikasaun separadu tama ona ba Anunsiu.
+- Dashboard uza gráfiku lokál no dadus tendénsia.
 - Source aplikasaun la iha marker mojibake prinsipál.
-- Módulu notifikasaun separadu la ativu tanba funsaun ne'e tama ona ba Anunsiu.
-- Gráfiku painel uza ApexCharts lokál no iha dadus tendénsia.
+
+## Seguransa
+
+- Password uza `password_hash`.
+- Login no logout uza session.
+- Filter `Authentication` no `Authorization` proteje pajina.
+- Role based access control regula menu no asesu.
+- Form POST uza CSRF.
+- Route delete no mutasaun importante la uza GET.
+- Audit log rai asaun importante.
 
 ## Etiketa
 
-`codeigniter4` `php` `mysql` `bootstrap` `apexcharts` `hris` `payroll` `attendance` `leave-management` `document-management` `audit-log` `tetun` `timor-leste` `maucatar`
+`codeigniter4` `php` `mysql` `mariadb` `bootstrap` `apexcharts` `chartjs` `datatables` `dompdf` `phpspreadsheet` `phpunit` `hris` `payroll` `attendance` `leave-management` `document-management` `audit-log` `tetun` `timor-leste` `maucatar`
 
 ## Planu Oin
 
-- Targeting Anunsiu tuir papel no departamentu.
+- Target anunsiu tuir papel no departamentu.
 - Aprovasaun lisensa ho nível barak.
-- Shift multi-jadwál.
-- 2FA ba administradór.
-- Hardening ba implantasaun produsaun.
-- Dashboard analytics ba tendénsia fulan no tinan.
+- Shift servisu ho jadwál diferente.
+- 2FA ba administrador.
+- Hardening ba ambiente produsaun.
+- Dashboard analytics ba fulan no tinan.
 
 ## Lisensa
 
@@ -278,4 +332,4 @@ Projetu ida-ne'e uza lisensa [MIT](LICENSE).
 
 ---
 
-**SIMAUCATAR** - HRIS lokál ne'ebé ordenadu, seguru, no prontu hodi suporta operasaun Postu Administrativu Maucatar.
+**SIMAUCATAR** - HRIS lokál, ordenadu, no seguru atu suporta servisu administrasaun iha Postu Administrativu Maucatar.
