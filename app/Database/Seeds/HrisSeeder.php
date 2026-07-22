@@ -36,11 +36,19 @@ class HrisSeeder extends Seeder
             ]);
         }
 
+        if ($this->db->table('grau')->countAllResults() === 0) {
+            $this->db->table('grau')->insertBatch([
+                ['naran_grau' => 'Grau I', 'salariu_baziku' => 500.00, 'created_at' => date('Y-m-d H:i:s')],
+                ['naran_grau' => 'Grau II', 'salariu_baziku' => 800.00, 'created_at' => date('Y-m-d H:i:s')],
+                ['naran_grau' => 'Grau III', 'salariu_baziku' => 1500.00, 'created_at' => date('Y-m-d H:i:s')],
+            ]);
+        }
+
         if ($this->db->table('pozisaun')->countAllResults() === 0) {
             $this->db->table('pozisaun')->insertBatch([
-                ['naran_pozisaun' => 'Diretór', 'salariu_baziku' => 1500.00],
-                ['naran_pozisaun' => 'Xefe Seksaun', 'salariu_baziku' => 800.00],
-                ['naran_pozisaun' => 'Staff', 'salariu_baziku' => 500.00],
+                ['naran_pozisaun' => 'Diretór'],
+                ['naran_pozisaun' => 'Xefe Seksaun'],
+                ['naran_pozisaun' => 'Staff'],
             ]);
         }
 
