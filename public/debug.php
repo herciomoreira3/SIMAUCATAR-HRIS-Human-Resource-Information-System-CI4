@@ -5,22 +5,28 @@ ini_set('display_errors', 1);
 echo "<h2>Database Connection Debug</h2>";
 
 // Read environment variables using multiple fallback sources
-$host = $_ENV['database_default_hostname'] ?? $_SERVER['database_default_hostname'] ?? getenv('database_default_hostname') ??
+$host = $_ENV['DB_HOST'] ?? $_SERVER['DB_HOST'] ?? getenv('DB_HOST') ??
+        $_ENV['database_default_hostname'] ?? $_SERVER['database_default_hostname'] ?? getenv('database_default_hostname') ??
         $_ENV['database.default.hostname'] ?? $_SERVER['database.default.hostname'] ?? getenv('database.default.hostname') ?? '127.0.0.1';
 
-$port = $_ENV['database_default_port'] ?? $_SERVER['database_default_port'] ?? getenv('database_default_port') ??
+$port = $_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? getenv('DB_PORT') ??
+        $_ENV['database_default_port'] ?? $_SERVER['database_default_port'] ?? getenv('database_default_port') ??
         $_ENV['database.default.port'] ?? $_SERVER['database.default.port'] ?? getenv('database.default.port') ?? 3306;
 
-$user = $_ENV['database_default_username'] ?? $_SERVER['database_default_username'] ?? getenv('database_default_username') ??
+$user = $_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? getenv('DB_USER') ??
+        $_ENV['database_default_username'] ?? $_SERVER['database_default_username'] ?? getenv('database_default_username') ??
         $_ENV['database.default.username'] ?? $_SERVER['database.default.username'] ?? getenv('database.default.username') ?? '';
 
-$pass = $_ENV['database_default_password'] ?? $_SERVER['database_default_password'] ?? getenv('database_default_password') ??
+$pass = $_ENV['DB_PASS'] ?? $_SERVER['DB_PASS'] ?? getenv('DB_PASS') ??
+        $_ENV['database_default_password'] ?? $_SERVER['database_default_password'] ?? getenv('database_default_password') ??
         $_ENV['database.default.password'] ?? $_SERVER['database.default.password'] ?? getenv('database.default.password') ?? '';
 
-$db   = $_ENV['database_default_database'] ?? $_SERVER['database_default_database'] ?? getenv('database_default_database') ??
+$db   = $_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? getenv('DB_NAME') ??
+        $_ENV['database_default_database'] ?? $_SERVER['database_default_database'] ?? getenv('database_default_database') ??
         $_ENV['database.default.database'] ?? $_SERVER['database.default.database'] ?? getenv('database.default.database') ?? '';
 
-$encrypt = $_ENV['database_default_encrypt'] ?? $_SERVER['database_default_encrypt'] ?? getenv('database_default_encrypt') ??
+$encrypt = $_ENV['DB_SSL'] ?? $_SERVER['DB_SSL'] ?? getenv('DB_SSL') ??
+           $_ENV['database_default_encrypt'] ?? $_SERVER['database_default_encrypt'] ?? getenv('database_default_encrypt') ??
            $_ENV['database.default.encrypt'] ?? $_SERVER['database.default.encrypt'] ?? getenv('database.default.encrypt') ?? '';
 
 echo "Host: " . htmlspecialchars($host) . "<br>";

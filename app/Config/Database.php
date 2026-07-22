@@ -205,6 +205,30 @@ class Database extends Config
             $this->default['encrypt'] = json_decode($encryptVal, true) ?? $encryptVal;
         }
 
+        // Support standard DB_* environment variable fallbacks (like on Render)
+        if ($dbHost = env('DB_HOST') ?? getenv('DB_HOST')) {
+            $this->default['hostname'] = $dbHost;
+        }
+        if ($dbUser = env('DB_USER') ?? getenv('DB_USER')) {
+            $this->default['username'] = $dbUser;
+        }
+        if ($dbPass = env('DB_PASS') ?? getenv('DB_PASS')) {
+            $this->default['password'] = $dbPass;
+        }
+        if ($dbName = env('DB_NAME') ?? getenv('DB_NAME')) {
+            $this->default['database'] = $dbName;
+        }
+        if ($dbPort = env('DB_PORT') ?? getenv('DB_PORT')) {
+            $this->default['port'] = (int) $dbPort;
+        }
+        if ($dbSSL = env('DB_SSL') ?? getenv('DB_SSL')) {
+            if ($dbSSL === 'true' || $dbSSL === '1' || $dbSSL === true) {
+                $this->default['encrypt'] = [
+                    'ssl_verify' => true
+                ];
+            }
+        }
+
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that
         // we don't overwrite live data on accident.
