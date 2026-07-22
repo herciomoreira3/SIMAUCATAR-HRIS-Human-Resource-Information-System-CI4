@@ -46,6 +46,11 @@ class AddGrauIdToFunsionariu extends Migration
         if ($this->db->tableExists('pozisaun') && $this->db->fieldExists('grau_id', 'pozisaun')) {
             // Drop constraint first if possible
             try {
+                $this->db->query("ALTER TABLE pozisaun DROP FOREIGN KEY pozisaun_grau_id_foreign");
+            } catch (\Exception $e) {
+                // Ignore
+            }
+            try {
                 $this->db->query("ALTER TABLE pozisaun DROP FOREIGN KEY fk_pozisaun_grau");
             } catch (\Exception $e) {
                 // Ignore
