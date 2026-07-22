@@ -39,10 +39,20 @@ COPY . /var/www/html/
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader
 
+# Create necessary upload directories
+RUN mkdir -p /var/www/html/public/uploads/perfil \
+             /var/www/html/public/uploads/lisensa \
+             /var/www/html/public/uploads/sansaun
+
 # Set permissions for CodeIgniter writeable folders and uploads
 RUN chown -R www-data:www-data /var/www/html/writable /var/www/html/public/uploads
+RUN chmod -R 775 /var/www/html/writable /var/www/html/public/uploads
+
+# Copy and set up entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
