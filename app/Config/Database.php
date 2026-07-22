@@ -193,6 +193,18 @@ class Database extends Config
     {
         parent::__construct();
 
+        // Support dynamic database SSL/encryption setup via environment variables (for TiDB Cloud)
+        $encryptVal = env('database.default.encrypt') ?? env('database_default_encrypt');
+        if ($encryptVal === 'true' || $encryptVal === '1') {
+            $this->default['encrypt'] = true;
+        } elseif ($encryptVal === 'ssl_verify') {
+            $this->default['encrypt'] = [
+                'ssl_verify' => true
+            ];
+        } elseif (is_string($encryptVal) && !empty($encryptVal)) {
+            $this->default['encrypt'] = json_decode($encryptVal, true) ?? $encryptVal;
+        }
+
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that
         // we don't overwrite live data on accident.
