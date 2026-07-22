@@ -174,6 +174,16 @@ class ApplicationModel extends Model
         return $this->db->table('departamentu')->get()->getResultArray();
     }
 
+    public function getDiresaun($id = false) {
+        if ($id) return $this->db->table('departamentu')->select('id, naran_departamentu, naran_departamentu as naran_diresaun')->where('id', $id)->get()->getRowArray();
+        return $this->db->table('departamentu')->select('id, naran_departamentu, naran_departamentu as naran_diresaun')->get()->getResultArray();
+    }
+
+    public function getGrau($id = false) {
+        if ($id) return $this->db->table('grau')->where('id', $id)->get()->getRowArray();
+        return $this->db->table('grau')->get()->getResultArray();
+    }
+
     public function getPozisaun($id = false) {
         if ($id) return $this->db->table('pozisaun')->where('id', $id)->get()->getRowArray();
         return $this->db->table('pozisaun')->get()->getResultArray();
@@ -186,9 +196,10 @@ class ApplicationModel extends Model
 
     public function getFunsionariu($id = false) {
         $builder = $this->db->table('funsionariu')
-            ->select('funsionariu.*, departamentu.naran_departamentu, pozisaun.naran_pozisaun, pozisaun.salariu_baziku, kategoria.naran_kategoria, users.username AS naran_utilizador, users.role AS role_id, "Ativu" AS estadu_kontu')
+            ->select('funsionariu.*, departamentu.naran_departamentu, departamentu.naran_departamentu AS naran_diresaun, pozisaun.naran_pozisaun, grau.naran_grau, grau.salariu_baziku, kategoria.naran_kategoria, users.username AS naran_utilizador, users.role AS role_id, "Ativu" AS estadu_kontu')
             ->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')
             ->join('pozisaun', 'funsionariu.pozisaun_id = pozisaun.id')
+            ->join('grau', 'funsionariu.grau_id = grau.id', 'left')
             ->join('kategoria', 'funsionariu.kategoria_id = kategoria.id')
             ->join('users', 'funsionariu.utilizador_id = users.id', 'left');
         
@@ -198,9 +209,10 @@ class ApplicationModel extends Model
 
     public function getFunsionariuByUserId($userId) {
         return $this->db->table('funsionariu')
-            ->select('funsionariu.*, departamentu.naran_departamentu, pozisaun.naran_pozisaun, kategoria.naran_kategoria, users.username AS naran_utilizador, users.role AS role_id')
+            ->select('funsionariu.*, departamentu.naran_departamentu, departamentu.naran_departamentu AS naran_diresaun, pozisaun.naran_pozisaun, grau.naran_grau, grau.salariu_baziku, kategoria.naran_kategoria, users.username AS naran_utilizador, users.role AS role_id')
             ->join('departamentu', 'funsionariu.departamentu_id = departamentu.id', 'left')
             ->join('pozisaun', 'funsionariu.pozisaun_id = pozisaun.id', 'left')
+            ->join('grau', 'funsionariu.grau_id = grau.id', 'left')
             ->join('kategoria', 'funsionariu.kategoria_id = kategoria.id', 'left')
             ->join('users', 'funsionariu.utilizador_id = users.id', 'left')
             ->where('funsionariu.utilizador_id', $userId)
@@ -239,8 +251,18 @@ class ApplicationModel extends Model
         return $builder->get()->getResultArray();
     }
 
-    public function countLeaveDays(string $startDate, string $endDate, ?int $year = null): int
+    public function getTipuLisensa($id = false) {
+        if ($id) return $this->db->table('tipu_lisensa')->where('id', $id)->get()->getRowArray();
+        return $this->db->table('tipu_lisensa')->orderBy('naran_tipu', 'ASC')->get()->getResultArray();
+    }
+
+    public function countLeaveDays(string $startDate, string $endDate, ?int $year = null, string $sesaun = 'Loron Tomak'): float
     {
+        // Half-day sessions count as 0.5
+        if (in_array($sesaun, ['Dader', 'Lokraik'], true)) {
+            return 0.5;
+        }
+
         $start = new \DateTime($startDate);
         $end = new \DateTime($endDate);
 
@@ -258,7 +280,7 @@ class ApplicationModel extends Model
             }
         }
 
-        return ((int) $start->diff($end)->format('%a')) + 1;
+        return (float) (((int) $start->diff($end)->format('%a')) + 1);
     }
 
     public function getLeaveBalances($funsionariu_id = false, $year = false): array
@@ -326,7 +348,8 @@ class ApplicationModel extends Model
             ->getResultArray();
 
         foreach ($rows as $row) {
-            $days = $this->countLeaveDays($row['data_hahu'], $row['data_remata'], $year);
+            $sesaun = $row['sesaun'] ?? 'Loron Tomak';
+            $days = $this->countLeaveDays($row['data_hahu'], $row['data_remata'], $year, $sesaun);
             if ($row['estadu_lisensa'] === 'Aprovadu') {
                 $used += $days;
             } elseif ($row['estadu_lisensa'] === 'Pendente') {
@@ -409,22 +432,49 @@ class ApplicationModel extends Model
         return $builder->orderBy('sansaun.created_at', 'DESC')->get()->getResultArray();
     }
 
-    public function getAttendanceSettings() {
+    public function getAttendanceSettings()
+    {
+        $fields = $this->db->getFieldNames('attendance_settings');
         $check = $this->db->table('attendance_settings')->get()->getRowArray();
+        
+        $defaults = [
+            'tama_hahu' => '08:00:00',
+            'tama_remata' => '09:00:00',
+            'sai_hahu' => '17:00:00',
+            'sai_remata' => '18:00:00',
+            'toleransia_minutu' => 15,
+            'sabadu' => 0,
+            'domingu' => 0,
+            'tama_manual' => 0,
+            'sai_manual' => 0,
+            'tama_hahu_dader' => '08:00:00',
+            'tama_remata_dader' => '09:00:00',
+            'sai_hahu_dader' => '12:00:00',
+            'sai_remata_dader' => '13:00:00',
+            'tama_hahu_lokraik' => '14:00:00',
+            'tama_remata_lokraik' => '15:00:00',
+            'sai_hahu_lokraik' => '17:00:00',
+            'sai_remata_lokraik' => '18:00:00',
+            'tama_manual_dader' => 0,
+            'sai_manual_dader' => 0,
+            'tama_manual_lokraik' => 0,
+            'sai_manual_lokraik' => 0,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+        
         if (!$check) {
-            $this->db->table('attendance_settings')->insert([
-                'tama_hahu' => '08:00:00',
-                'tama_remata' => '09:00:00',
-                'sai_hahu' => '17:00:00',
-                'sai_remata' => '18:00:00',
-                'toleransia_minutu' => 15,
-                'sabadu' => 0,
-                'domingu' => 0,
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
-            return $this->db->table('attendance_settings')->get()->getRowArray();
+            $insertData = [];
+            foreach ($defaults as $key => $value) {
+                if (in_array($key, $fields)) {
+                    $insertData[$key] = $value;
+                }
+            }
+            $this->db->table('attendance_settings')->insert($insertData);
+            $check = $this->db->table('attendance_settings')->get()->getRowArray();
         }
-        return $check;
+        
+        // Merge with defaults to ensure all keys exist
+        return array_merge($defaults, $check ?? []);
     }
 
     public function saveData($table, $data) {
@@ -669,8 +719,11 @@ class ApplicationModel extends Model
         return $this->db->table('user_access')->delete(['role_id' => $dataAccess['roleID'], 'submenu_id' => $dataAccess['submenuID']]);
     }
     public function getSubsidiu($id = false) {
-        if ($id) return $this->db->table('subsidiu')->where('id', $id)->get()->getRowArray();
-        return $this->db->table('subsidiu')->get()->getResultArray();
+        $builder = $this->db->table('subsidiu')
+            ->select('subsidiu.*, pozisaun.naran_pozisaun')
+            ->join('pozisaun', 'subsidiu.pozisaun_id = pozisaun.id', 'left');
+        if ($id) return $builder->where('subsidiu.id', $id)->get()->getRowArray();
+        return $builder->get()->getResultArray();
     }
 
     public function getFunsionariuPaymentStatus($fulan, $tinan) {
@@ -678,8 +731,9 @@ class ApplicationModel extends Model
         $tinan = (int) $tinan;
 
         $data = $this->db->table('funsionariu')
-            ->select('funsionariu.id, funsionariu.nid, funsionariu.naran_kompletu, pozisaun.naran_pozisaun, pozisaun.salariu_baziku, salariu.id AS salariu_id, salariu.estadu_pagamentu')
+            ->select('funsionariu.id, funsionariu.nid, funsionariu.naran_kompletu, funsionariu.pozisaun_id, pozisaun.naran_pozisaun, grau.salariu_baziku, salariu.id AS salariu_id, salariu.estadu_pagamentu')
             ->join('pozisaun', 'funsionariu.pozisaun_id = pozisaun.id')
+            ->join('grau', 'funsionariu.grau_id = grau.id', 'left')
             ->join('salariu', 'funsionariu.id = salariu.funsionariu_id AND salariu.fulan = ' . $this->db->escape($fulan) . ' AND salariu.tinan = ' . $this->db->escape($tinan), 'left')
             ->get()->getResultArray();
 

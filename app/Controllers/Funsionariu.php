@@ -26,20 +26,20 @@ class Funsionariu extends BaseController
 
         $funsionariu_id = $funsionariu['id'];
         $prezente = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Prezente')->countAllResults();
-        $tardi = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Tardi')->countAllResults();
+        $loronSorin = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
         $falta = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Falta')->countAllResults();
         $lisensa = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Lisensa')->countAllResults();
 
         $trendLabels = [];
         $trendPrezente = [];
-        $trendTardi = [];
+        $trendLoronSorin = [];
         $trendFalta = [];
         $trendLisensa = [];
         for ($i = 14; $i >= 0; $i--) {
             $date = date('Y-m-d', strtotime("-$i days"));
             $trendLabels[] = date('d M', strtotime($date));
             $trendPrezente[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Prezente')->countAllResults();
-            $trendTardi[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Tardi')->countAllResults();
+            $trendLoronSorin[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
             $trendFalta[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
             $trendLisensa[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Lisensa')->countAllResults();
         }
@@ -49,10 +49,10 @@ class Funsionariu extends BaseController
             'avizu' => $this->ApplicationModel->getAvizu(),
             'prezensa_fulan' => count($this->ApplicationModel->getPrezensa(funsionariu_id: $funsionariu_id)),
             'funsionariu' => $funsionariu,
-            'chart_data' => json_encode([(int) $prezente, (int) $tardi, (int) $falta, (int) $lisensa]),
+            'chart_data' => json_encode([(int) $prezente, (int) $loronSorin, (int) $falta, (int) $lisensa]),
             'trend_labels' => json_encode($trendLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
             'trend_prezente' => json_encode($trendPrezente),
-            'trend_tardi' => json_encode($trendTardi),
+            'trend_loron_sorin' => json_encode($trendLoronSorin),
             'trend_falta' => json_encode($trendFalta),
             'trend_lisensa' => json_encode($trendLisensa),
         ]);
@@ -84,7 +84,28 @@ class Funsionariu extends BaseController
         return view('pages/funsionariu/prezensa', $data);
     }
 
-    public function clockIn()
+    // Helper function to calculate attendance status
+    private function calculateAttendanceStatus(array $prezensa): string
+    {
+        // Check if all 4 are present
+        $hasTamaDader = !empty($prezensa['oras_tama_dader']);
+        $hasSaiDader = !empty($prezensa['oras_sai_dader']);
+        $hasTamaLokraik = !empty($prezensa['oras_tama_lokraik']);
+        $hasSaiLokraik = !empty($prezensa['oras_sai_lokraik']);
+        
+        if ($hasTamaDader && $hasSaiDader && $hasTamaLokraik && $hasSaiLokraik) {
+            return 'Prezente';
+        } elseif ($hasTamaDader || $hasSaiDader || $hasTamaLokraik || $hasSaiLokraik) {
+            // At least one but not all
+            return 'Loron Sorin';
+        }
+        
+        // No attendance at all
+        return 'Incomplete';
+    }
+
+    // Generic attendance action handler
+    private function handleAttendance(string $type, string $timeField): \CodeIgniter\HTTP\RedirectResponse
     {
         $funsionariu = $this->currentFunsionariu();
         if (!$funsionariu) {
@@ -101,9 +122,16 @@ class Funsionariu extends BaseController
             return redirect()->back();
         }
 
-        $check = $this->ApplicationModel->getPrezensa(funsionariu_id: $funsionariu_id, data: $ohin);
-        if ($check) {
-            session()->setFlashdata('error', 'Ita absente ona ohin.');
+        $check = $this->db->table('prezensa')
+            ->where('funsionariu_id', $funsionariu_id)
+            ->where('data_prezensa', $ohin)
+            ->get()->getRowArray();
+        
+        if ($check && !empty($check[$timeField])) {
+            $label = $type === 'tama_dader' ? 'Clock In Dader' :
+                     ($type === 'sai_dader' ? 'Clock Out Dader' :
+                     ($type === 'tama_lokraik' ? 'Clock In Lokraik' : 'Clock Out Lokraik'));
+            session()->setFlashdata('error', "Ita $label ona ohin.");
             return redirect()->back();
         }
 
@@ -126,77 +154,81 @@ class Funsionariu extends BaseController
             }
         }
 
-        if (strtotime($now) < strtotime($settings['tama_hahu']) || strtotime($now) > strtotime($settings['tama_remata'])) {
-            session()->setFlashdata('error', 'Tempu absensia tama taka ona.');
-            return redirect()->back();
+        // Check manual mode and time window
+        // DB stores keys as: tama_manual_dader, sai_manual_dader, tama_manual_lokraik, sai_manual_lokraik
+        // $type is: tama_dader, sai_dader, tama_lokraik, sai_lokraik
+        $parts = explode('_', $type, 2); // ['tama','dader'] or ['sai','lokraik']
+        $manualConfigKey = $parts[0] . '_manual_' . $parts[1]; // tama_manual_dader
+        $hahuConfigKey   = $parts[0] . '_hahu_' . $parts[1];   // tama_hahu_dader
+        $remataConfigKey = $parts[0] . '_remata_' . $parts[1]; // tama_remata_dader
+
+        if (!isset($settings[$manualConfigKey]) || (int)$settings[$manualConfigKey] !== 1) {
+            $hahu = $settings[$hahuConfigKey] ?? '00:00:00';
+            $remata = $settings[$remataConfigKey] ?? '23:59:59';
+            if (strtotime($now) < strtotime($hahu) || strtotime($now) > strtotime($remata)) {
+                $label = $type === 'tama_dader' ? 'Tama Dader' :
+                        ($type === 'sai_dader' ? 'Sai Dader' :
+                        ($type === 'tama_lokraik' ? 'Tama Lokraik' : 'Sai Lokraik'));
+                session()->setFlashdata('error', "Tempu absensia $label taka ona.");
+                return redirect()->back();
+            }
         }
 
-        $toleransia = (int) ($settings['toleransia_minutu'] ?? 0);
-        $lateThreshold = date('H:i:s', strtotime($settings['tama_hahu'] . ' +' . $toleransia . ' minutes'));
-        $estadu = (strtotime($now) > strtotime($lateThreshold)) ? 'Tardi' : 'Prezente';
+        // Prepare data
+        $updateData = [
+            $timeField => $now,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
 
-        $this->ApplicationModel->saveData('prezensa', [
-            'funsionariu_id' => $funsionariu_id,
-            'data_prezensa' => $ohin,
-            'oras_tama' => $now,
-            'estadu_prezensa' => $estadu,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
+        if ($check) {
+            // Update existing record
+            $this->ApplicationModel->updateData('prezensa', $updateData, ['id' => $check['id']]);
+            
+            // Calculate new status and update
+            $check[$timeField] = $now;
+            $newStatus = $this->calculateAttendanceStatus($check);
+            $this->ApplicationModel->updateData('prezensa', ['estadu_prezensa' => $newStatus], ['id' => $check['id']]);
+            
+            $this->logAudit("attendance_$type", 'prezensa', $check['id'], $check, $updateData);
+        } else {
+            // Create new record
+            $insertData = [
+                'funsionariu_id' => $funsionariu_id,
+                'data_prezensa' => $ohin,
+                $timeField => $now,
+                'estadu_prezensa' => 'Loron Sorin',
+                'created_at' => date('Y-m-d H:i:s'),
+            ];
+            
+            $this->ApplicationModel->saveData('prezensa', $insertData);
+            $this->logAudit("attendance_$type", 'prezensa', $funsionariu_id . ':' . $ohin, null, $insertData);
+        }
 
-        $this->logAudit('clock_in', 'prezensa', $funsionariu_id . ':' . $ohin, null, [
-            'funsionariu_id' => $funsionariu_id,
-            'data_prezensa' => $ohin,
-            'oras_tama' => $now,
-            'estadu_prezensa' => $estadu,
-        ]);
-        session()->setFlashdata('success', 'Clock In ho susesu. Estadu: ' . $estadu);
+        $label = $type === 'tama_dader' ? 'Clock In Dader' :
+                 ($type === 'sai_dader' ? 'Clock Out Dader' :
+                 ($type === 'tama_lokraik' ? 'Clock In Lokraik' : 'Clock Out Lokraik'));
+        session()->setFlashdata('success', "$label ho susesu.");
         return redirect()->back();
     }
 
-    public function clockOut()
+    public function tamaDader()
     {
-        $funsionariu = $this->currentFunsionariu();
-        if (!$funsionariu) {
-            return redirect()->to(base_url('blocked'));
-        }
+        return $this->handleAttendance('tama_dader', 'oras_tama_dader');
+    }
 
-        $funsionariu_id = $funsionariu['id'];
-        $ohin = date('Y-m-d');
-        $now = date('H:i:s');
-        $prezensa = $this->db->table('prezensa')
-            ->where('funsionariu_id', $funsionariu_id)
-            ->where('data_prezensa', $ohin)
-            ->get()->getRowArray();
+    public function saiDader()
+    {
+        return $this->handleAttendance('sai_dader', 'oras_sai_dader');
+    }
 
-        if (!$prezensa || empty($prezensa['oras_tama'])) {
-            session()->setFlashdata('error', 'Ita seidauk clock in.');
-            return redirect()->back();
-        }
+    public function tamaLokraik()
+    {
+        return $this->handleAttendance('tama_lokraik', 'oras_tama_lokraik');
+    }
 
-        if (!empty($prezensa['oras_sai'])) {
-            session()->setFlashdata('error', 'Ita clock out ona ohin.');
-            return redirect()->back();
-        }
-
-        $settings = $this->ApplicationModel->getAttendanceSettings();
-        $hahu_sai = $settings['sai_hahu'] ?? '00:00:00';
-        $remata_sai = $settings['sai_remata'] ?? '23:59:59';
-
-        if (strtotime($now) < strtotime($hahu_sai) || strtotime($now) > strtotime($remata_sai)) {
-            session()->setFlashdata('error', 'Tempu clock out taka ona.');
-            return redirect()->back();
-        }
-
-        $this->ApplicationModel->updateData('prezensa', [
-            'oras_sai' => $now,
-            'updated_at' => date('Y-m-d H:i:s')
-        ], ['funsionariu_id' => $funsionariu_id, 'data_prezensa' => $ohin]);
-
-        $this->logAudit('clock_out', 'prezensa', $prezensa['id'] ?? ($funsionariu_id . ':' . $ohin), $prezensa, [
-            'oras_sai' => $now,
-        ]);
-        session()->setFlashdata('success', 'Clock Out ho susesu.');
-        return redirect()->back();
+    public function saiLokraik()
+    {
+        return $this->handleAttendance('sai_lokraik', 'oras_sai_lokraik');
     }
 
     public function perfil()
@@ -297,6 +329,7 @@ class Funsionariu extends BaseController
             'title' => 'Pedidu Lisensa',
             'lisensa' => $this->ApplicationModel->getLisensa(funsionariu_id: $funsionariu['id']),
             'leave_balances' => $this->ApplicationModel->getLeaveBalances(funsionariu_id: $funsionariu['id'], year: date('Y')),
+            'tipu_lisensa' => $this->ApplicationModel->getTipuLisensa(),
         ]);
 
         return view('pages/funsionariu/lisensa', $data);
@@ -310,10 +343,11 @@ class Funsionariu extends BaseController
         }
 
         if (!$this->validate([
-            'tipu_lisensa' => 'required|max_length[100]',
-            'data_hahu' => 'required|valid_date[Y-m-d]',
-            'data_remata' => 'required|valid_date[Y-m-d]',
-            'razaun' => 'required|min_length[5]|max_length[1000]',
+            'tipu_lisensa'    => 'required|max_length[100]',
+            'sesaun'          => 'required|in_list[Loron Tomak,Dader,Lokraik]',
+            'data_hahu'       => 'required|valid_date[Y-m-d]',
+            'data_remata'     => 'required|valid_date[Y-m-d]',
+            'razaun'          => 'required|min_length[5]|max_length[1000]',
             'dokumentu_suporta' => 'if_exist|max_size[dokumentu_suporta,4096]|ext_in[dokumentu_suporta,pdf,jpg,jpeg,png]|mime_in[dokumentu_suporta,application/pdf,image/jpg,image/jpeg,image/png]',
         ])) {
             session()->setFlashdata('error', implode(' ', $this->validator->getErrors()));
@@ -321,8 +355,15 @@ class Funsionariu extends BaseController
         }
 
         $funsionariu_id = $funsionariu['id'];
-        $data_hahu = $this->request->getPost('data_hahu');
-        $data_remata = $this->request->getPost('data_remata');
+        $sesaun         = $this->request->getPost('sesaun');
+        $data_hahu      = $this->request->getPost('data_hahu');
+        $data_remata    = $this->request->getPost('data_remata');
+
+        // Half-day: only one day allowed
+        if (in_array($sesaun, ['Dader', 'Lokraik'], true) && $data_hahu !== $data_remata) {
+            session()->setFlashdata('error', 'Lisensa Dader/Lokraik deit bele ba loron ida de\'it.');
+            return redirect()->back()->withInput();
+        }
 
         if ($data_remata < $data_hahu) {
             session()->setFlashdata('error', 'Data remata la bele kiik liu data hahu.');
@@ -330,53 +371,81 @@ class Funsionariu extends BaseController
         }
 
         $tipu_lisensa = (string) $this->request->getPost('tipu_lisensa');
+
+        // Leave balance check
         for ($year = (int) date('Y', strtotime($data_hahu)); $year <= (int) date('Y', strtotime($data_remata)); $year++) {
             $this->ApplicationModel->recalculateLeaveBalance((int) $funsionariu['id'], $tipu_lisensa, $year);
             $balance = $this->db->table('leave_balances')
                 ->where('funsionariu_id', $funsionariu['id'])
                 ->where('leave_type', $tipu_lisensa)
                 ->where('year', $year)
-                ->get()
-                ->getRowArray();
-            $requestedDays = $this->ApplicationModel->countLeaveDays($data_hahu, $data_remata, $year);
+                ->get()->getRowArray();
+            $requestedDays = $this->ApplicationModel->countLeaveDays($data_hahu, $data_remata, $year, $sesaun);
             if ($balance && $requestedDays > (float) $balance['remaining_days']) {
                 session()->setFlashdata('error', 'Balansu lisensa la sufisiente ba tinan ' . $year . '. Restu: ' . $balance['remaining_days'] . ' loron.');
                 return redirect()->back()->withInput();
             }
         }
 
-        $existingPrezensa = $this->db->table('prezensa')
-            ->where('funsionariu_id', $funsionariu_id)
-            ->where('data_prezensa >=', $data_hahu)
-            ->where('data_prezensa <=', $data_remata)
-            ->whereIn('estadu_prezensa', ['Prezente', 'Tardi'])
-            ->get()->getResultArray();
+        // Conflict check with existing attendance — session-aware
+        if ($sesaun === 'Loron Tomak') {
+            // Whole-day: block if any session already clocked in
+            $existingPrezensa = $this->db->table('prezensa')
+                ->where('funsionariu_id', $funsionariu_id)
+                ->where('data_prezensa >=', $data_hahu)
+                ->where('data_prezensa <=', $data_remata)
+                ->whereIn('estadu_prezensa', ['Prezente', 'Loron Sorin'])
+                ->get()->getResultArray();
 
-        if (!empty($existingPrezensa)) {
-            session()->setFlashdata('error', 'Ita la bele husu lisensa iha loron neebe ita prezente/tardi ona.');
-            return redirect()->back()->withInput();
+            if (!empty($existingPrezensa)) {
+                session()->setFlashdata('error', 'Ita la bele husu lisensa loron tomak iha loron neebe ita prezente/loron sorin ona.');
+                return redirect()->back()->withInput();
+            }
+        } elseif ($sesaun === 'Dader') {
+            // Dader: block if tama_dader already filled
+            $existing = $this->db->table('prezensa')
+                ->where('funsionariu_id', $funsionariu_id)
+                ->where('data_prezensa', $data_hahu)
+                ->get()->getRowArray();
+            if ($existing && !empty($existing['oras_tama_dader'])) {
+                session()->setFlashdata('error', 'Ita tama dader ona ohin, la bele husu lisensa sesion Dader.');
+                return redirect()->back()->withInput();
+            }
+        } elseif ($sesaun === 'Lokraik') {
+            // Lokraik: block if tama_lokraik already filled
+            $existing = $this->db->table('prezensa')
+                ->where('funsionariu_id', $funsionariu_id)
+                ->where('data_prezensa', $data_hahu)
+                ->get()->getRowArray();
+            if ($existing && !empty($existing['oras_tama_lokraik'])) {
+                session()->setFlashdata('error', 'Ita tama lokraik ona ohin, la bele husu lisensa sesion Lokraik.');
+                return redirect()->back()->withInput();
+            }
         }
 
+        // Check overlap with existing approved/pending leave of same type+sesaun
         $overlapLisensa = $this->db->table('lisensa')
             ->where('funsionariu_id', $funsionariu_id)
             ->whereIn('estadu_lisensa', ['Pendente', 'Aprovadu'])
             ->where('data_hahu <=', $data_remata)
             ->where('data_remata >=', $data_hahu)
+            ->where('sesaun', $sesaun)
             ->get()->getRowArray();
 
         if ($overlapLisensa) {
-            session()->setFlashdata('error', 'Ita iha ona pedidu lisensa Pendente/Aprovadu iha range data nee.');
+            session()->setFlashdata('error', 'Ita iha ona pedidu lisensa Pendente/Aprovadu iha range data no sesion nee.');
             return redirect()->back()->withInput();
         }
 
         $data = [
             'funsionariu_id' => $funsionariu_id,
-            'tipu_lisensa' => $tipu_lisensa,
-            'data_hahu' => $data_hahu,
-            'data_remata' => $data_remata,
-            'razaun' => $this->request->getPost('razaun'),
+            'tipu_lisensa'   => $tipu_lisensa,
+            'sesaun'         => $sesaun,
+            'data_hahu'      => $data_hahu,
+            'data_remata'    => $data_remata,
+            'razaun'         => $this->request->getPost('razaun'),
             'estadu_lisensa' => 'Pendente',
-            'created_at' => date('Y-m-d H:i:s'),
+            'created_at'     => date('Y-m-d H:i:s'),
         ];
 
         $file = $this->request->getFile('dokumentu_suporta');

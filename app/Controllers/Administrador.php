@@ -65,21 +65,21 @@ class Administrador extends BaseController
         // Chart 1: Attendance Trends (Last 15 days)
         $labels = [];
         $prezente = [];
-        $tardi = [];
+        $loronSorin = [];
         $falta = [];
         $lisensa = [];
         for ($i = 14; $i >= 0; $i--) {
             $date = date('Y-m-d', strtotime("-$i days"));
             $labels[] = date('d M', strtotime($date));
             $prezente[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Prezente')->countAllResults();
-            $tardi[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Tardi')->countAllResults();
+            $loronSorin[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
             $falta[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
             $lisensa[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Lisensa')->countAllResults();
         }
 
-        // Chart 2: Department Composition
+        // Chart 2: Diresaun Composition
         $dept_comp = $this->db->table('funsionariu')
-            ->select('departamentu.naran_departamentu, COUNT(funsionariu.id) as total')
+            ->select('departamentu.naran_departamentu as naran_diresaun, COUNT(funsionariu.id) as total')
             ->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')
             ->groupBy('funsionariu.departamentu_id')
             ->get()->getResultArray();
@@ -93,7 +93,7 @@ class Administrador extends BaseController
             'sansaun_ikus' => $this->ApplicationModel->getSansaun(),
             'chart_labels' => json_encode($labels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
             'chart_prezente' => json_encode($prezente),
-            'chart_tardi' => json_encode($tardi),
+            'chart_loron_sorin' => json_encode($loronSorin),
             'chart_falta' => json_encode($falta),
             'chart_lisensa' => json_encode($lisensa),
             'dept_comp' => json_encode($dept_comp, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
@@ -103,56 +103,125 @@ class Administrador extends BaseController
 
 
     // Jestaun Dadus Báziku
-    public function departamentu()
+    public function diresaun()
     {
         $data = array_merge($this->data, [
-            'title' => 'Jestaun Departamentu',
-            'departamentu' => $this->ApplicationModel->getDepartamentu(),
+            'title' => 'Jestaun Diresaun',
+            'diresaun' => $this->ApplicationModel->getDiresaun(),
         ]);
-        return view('pages/administrador/departamentu', $data);
+        return view('pages/administrador/diresaun', $data);
     }
 
-    public function createDepartamentu()
+    public function createDiresaun()
     {
-        $naran = $this->postText('naran_departamentu');
+        $naran = $this->postText('naran_diresaun');
         if ($naran === '' || strlen($naran) > 100) {
-            return $this->backWithError('Naran departamentu tenke prense no labele liu karakter 100.');
+            return $this->backWithError('Naran diresaun tenke prense no labele liu karakter 100.');
         }
         if ($this->valueExists('departamentu', 'naran_departamentu', $naran)) {
-            return $this->backWithError('Departamentu ne\'e iha ona.');
+            return $this->backWithError('Diresaun ne\'e iha ona.');
         }
 
         $this->ApplicationModel->saveData('departamentu', ['naran_departamentu' => $naran]);
-        session()->setFlashdata('success', 'Departamentu foun aumenta ona!');
+        session()->setFlashdata('success', 'Diresaun foun aumenta ona!');
         return redirect()->back();
     }
 
-    public function updateDepartamentu($id)
+    public function updateDiresaun($id)
     {
         $id = (int) $id;
-        $naran = $this->postText('naran_departamentu');
+        $naran = $this->postText('naran_diresaun');
         if ($naran === '' || strlen($naran) > 100) {
-            return $this->backWithError('Naran departamentu tenke prense no labele liu karakter 100.');
+            return $this->backWithError('Naran diresaun tenke prense no labele liu karakter 100.');
         }
         if ($this->valueExists('departamentu', 'naran_departamentu', $naran, $id)) {
-            return $this->backWithError('Departamentu ne\'e iha ona.');
+            return $this->backWithError('Diresaun ne\'e iha ona.');
         }
 
         $this->ApplicationModel->updateData('departamentu', ['naran_departamentu' => $naran], ['id' => $id]);
-        session()->setFlashdata('success', 'Departamentu atualiza ona!');
+        session()->setFlashdata('success', 'Diresaun atualiza ona!');
         return redirect()->back();
     }
 
-    public function deleteDepartamentu($id)
+    public function deleteDiresaun($id)
     {
         $check = $this->db->table('funsionariu')->where('departamentu_id', $id)->countAllResults();
         if ($check > 0) {
-            session()->setFlashdata('error', 'La bele hamos departamentu ne\'e tanba iha funsionáriu ne\'ebé utiliza hela!');
+            session()->setFlashdata('error', 'La bele hamos diresaun ne\'e tanba iha funsionáriu ne\'ebé utiliza hela!');
             return redirect()->back();
         }
 
         $this->ApplicationModel->deleteData('departamentu', ['id' => $id]);
-        session()->setFlashdata('success', 'Departamentu hamos ona!');
+        session()->setFlashdata('success', 'Diresaun hamos ona!');
+        return redirect()->back();
+    }
+
+    public function grau()
+    {
+        $data = array_merge($this->data, [
+            'title' => 'Jestaun Grau',
+            'grau' => $this->ApplicationModel->getGrau(),
+        ]);
+        return view('pages/administrador/grau', $data);
+    }
+
+    public function createGrau()
+    {
+        $naran = $this->postText('naran_grau');
+        $salariu = $this->postText('salariu_baziku');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran grau tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('grau', 'naran_grau', $naran)) {
+            return $this->backWithError('Grau ne\'e iha ona.');
+        }
+        if (!is_numeric($salariu) || (float) $salariu < 0) {
+            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
+        }
+
+        $this->ApplicationModel->saveData('grau', [
+            'naran_grau' => $naran,
+            'salariu_baziku' => (float) $salariu,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+        session()->setFlashdata('success', 'Grau foun aumenta ona!');
+        return redirect()->back();
+    }
+
+    public function updateGrau($id)
+    {
+        $id = (int) $id;
+        $naran = $this->postText('naran_grau');
+        $salariu = $this->postText('salariu_baziku');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran grau tenke prense no labele liu karakter 100.');
+        }
+        if ($this->valueExists('grau', 'naran_grau', $naran, $id)) {
+            return $this->backWithError('Grau ne\'e iha ona.');
+        }
+        if (!is_numeric($salariu) || (float) $salariu < 0) {
+            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
+        }
+
+        $this->ApplicationModel->updateData('grau', [
+            'naran_grau' => $naran,
+            'salariu_baziku' => (float) $salariu,
+            'updated_at' => date('Y-m-d H:i:s')
+        ], ['id' => $id]);
+        session()->setFlashdata('success', 'Grau atualiza ona!');
+        return redirect()->back();
+    }
+
+    public function deleteGrau($id)
+    {
+        $check = $this->db->table('pozisaun')->where('grau_id', $id)->countAllResults();
+        if ($check > 0) {
+            session()->setFlashdata('error', 'La bele hamos grau ne\'e tanba iha pozisaun ne\'ebé utiliza hela!');
+            return redirect()->back();
+        }
+
+        $this->ApplicationModel->deleteData('grau', ['id' => $id]);
+        session()->setFlashdata('success', 'Grau hamos ona!');
         return redirect()->back();
     }
 
@@ -168,20 +237,15 @@ class Administrador extends BaseController
     public function createPozisaun()
     {
         $naran = $this->postText('naran_pozisaun');
-        $salariu = $this->postText('salariu_baziku');
         if ($naran === '' || strlen($naran) > 100) {
             return $this->backWithError('Naran pozisaun tenke prense no labele liu karakter 100.');
         }
         if ($this->valueExists('pozisaun', 'naran_pozisaun', $naran)) {
             return $this->backWithError('Pozisaun ne\'e iha ona.');
         }
-        if (!is_numeric($salariu) || (float) $salariu < 0) {
-            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
-        }
 
         $this->ApplicationModel->saveData('pozisaun', [
             'naran_pozisaun' => $naran,
-            'salariu_baziku' => (float) $salariu
         ]);
         session()->setFlashdata('success', 'Pozisaun foun aumenta ona!');
         return redirect()->back();
@@ -191,20 +255,15 @@ class Administrador extends BaseController
     {
         $id = (int) $id;
         $naran = $this->postText('naran_pozisaun');
-        $salariu = $this->postText('salariu_baziku');
         if ($naran === '' || strlen($naran) > 100) {
             return $this->backWithError('Naran pozisaun tenke prense no labele liu karakter 100.');
         }
         if ($this->valueExists('pozisaun', 'naran_pozisaun', $naran, $id)) {
             return $this->backWithError('Pozisaun ne\'e iha ona.');
         }
-        if (!is_numeric($salariu) || (float) $salariu < 0) {
-            return $this->backWithError('Salariu baziku tenke numeriku no labele negativu.');
-        }
 
         $this->ApplicationModel->updateData('pozisaun', [
             'naran_pozisaun' => $naran,
-            'salariu_baziku' => (float) $salariu
         ], ['id' => $id]);
         session()->setFlashdata('success', 'Pozisaun atualiza ona!');
         return redirect()->back();
@@ -282,8 +341,9 @@ class Administrador extends BaseController
         $data = array_merge($this->data, [
             'title' => 'Jestaun Funsionáriu',
             'funsionariu' => $this->ApplicationModel->getFunsionariu(),
-            'departamentu' => $this->ApplicationModel->getDepartamentu(),
+            'diresaun' => $this->ApplicationModel->getDiresaun(),
             'pozisaun' => $this->ApplicationModel->getPozisaun(),
+            'grau' => $this->ApplicationModel->getGrau(),
             'kategoria' => $this->ApplicationModel->getKategoria(),
             'papel' => $this->ApplicationModel->getUserRole(),
         ]);
@@ -331,6 +391,7 @@ class Administrador extends BaseController
             'estadu_sivil'      => $this->request->getVar('estadu_sivil'),
             'departamentu_id'   => $this->request->getVar('departamentu_id'),
             'pozisaun_id'       => $this->request->getVar('pozisaun_id'),
+            'grau_id'           => $this->request->getVar('grau_id'),
             'kategoria_id'      => $this->request->getVar('kategoria_id'),
             'data_hahu_servisu' => $this->request->getVar('data_hahu_servisu'),
             'created_at'        => date('Y-m-d H:i:s'),
@@ -351,7 +412,7 @@ class Administrador extends BaseController
 
     public function downloadFunsionariuTemplate()
     {
-        $csv = "nid,naran_kompletu,seksu,fatin_moris,data_moris,hela_fatin,estadu_sivil,nu_telefone,departamentu,pozisaun,kategoria,data_hahu_servisu,username,password\n";
+        $csv = "nid,naran_kompletu,seksu,fatin_moris,data_moris,hela_fatin,estadu_sivil,nu_telefone,diresaun,pozisaun,kategoria,data_hahu_servisu,username,password\n";
         $csv .= "2026001,Exemplo Funsionariu,Mane,Maucatar,1995-01-01,Maucatar,Solteiru,77000000,Administrasaun,Staff,Kategoria A,2026-01-01,2026001,Maucatar123\n";
 
         return $this->response->download('template_import_funsionariu.csv', $csv);
@@ -400,8 +461,8 @@ class Administrador extends BaseController
                 continue;
             }
 
-            $departamentuId = $this->findOrCreateId('departamentu', 'naran_departamentu', $data['departamentu'] ?: 'Administrasaun');
-            $pozisaunId = $this->findOrCreateId('pozisaun', 'naran_pozisaun', $data['pozisaun'] ?: 'Staff', ['salariu_baziku' => 0]);
+            $departamentuId = $this->findOrCreateId('departamentu', 'naran_departamentu', $data['diresaun'] ?: 'Administrasaun');
+            $pozisaunId = $this->findOrCreateId('pozisaun', 'naran_pozisaun', $data['pozisaun'] ?: 'Staff');
             $kategoriaId = $this->findOrCreateId('kategoria', 'naran_kategoria', $data['kategoria'] ?: 'Kategoria A');
 
             $this->db->table('users')->insert([
@@ -475,6 +536,7 @@ class Administrador extends BaseController
             'estadu_sivil'      => $this->request->getVar('estadu_sivil'),
             'departamentu_id'   => $this->request->getVar('departamentu_id'),
             'pozisaun_id'       => $this->request->getVar('pozisaun_id'),
+            'grau_id'           => $this->request->getVar('grau_id'),
             'kategoria_id'      => $this->request->getVar('kategoria_id'),
             'data_hahu_servisu' => $this->request->getVar('data_hahu_servisu'),
             'updated_at'        => date('Y-m-d H:i:s'),
@@ -572,6 +634,8 @@ class Administrador extends BaseController
 
     public function updateAttendanceSettings()
     {
+        $fields = $this->db->getFieldNames('attendance_settings');
+        
         $data = [
             'tama_hahu'         => $this->request->getVar('tama_hahu'),
             'tama_remata'       => $this->request->getVar('tama_remata'),
@@ -580,15 +644,32 @@ class Administrador extends BaseController
             'toleransia_minutu' => $this->request->getVar('toleransia_minutu'),
             'sabadu'            => $this->request->getVar('sabadu') ? 1 : 0,
             'domingu'           => $this->request->getVar('domingu') ? 1 : 0,
+            'tama_manual'       => $this->request->getVar('tama_manual') ? 1 : 0,
+            'sai_manual'        => $this->request->getVar('sai_manual') ? 1 : 0,
             'updated_at'        => date('Y-m-d H:i:s'),
         ];
+        
+        // Add new dader/lokraik fields if they exist
+        foreach ([
+            'tama_hahu_dader', 'tama_remata_dader', 'sai_hahu_dader', 'sai_remata_dader',
+            'tama_hahu_lokraik', 'tama_remata_lokraik', 'sai_hahu_lokraik', 'sai_remata_lokraik',
+            'tama_manual_dader', 'sai_manual_dader', 'tama_manual_lokraik', 'sai_manual_lokraik',
+        ] as $field) {
+            if (in_array($field, $fields)) {
+                if (str_starts_with($field, 'tama_manual') || str_starts_with($field, 'sai_manual')) {
+                    $data[$field] = $this->request->getVar($field) ? 1 : 0;
+                } else {
+                    $data[$field] = $this->request->getVar($field);
+                }
+            }
+        }
+        
         $this->ApplicationModel->updateData('attendance_settings', $data, ['id' => 1]);
-
 
         // Automatically create an announcement
         $this->ApplicationModel->saveData('avizu', [
             'titulu' => 'Konfigurasaun Absénsia Foun',
-            'konteudu' => 'Absénsia TAMA loke husi ' . $data['tama_hahu'] . ' to\'o ' . $data['tama_remata'] . '. Absénsia SAI loke husi ' . $data['sai_hahu'] . ' to\'o ' . $data['sai_remata'] . '. Favor absénte iha tempu ne\'ebé konese!',
+            'konteudu' => 'Absénsia Dader: Tama loke husi ' . ($data['tama_hahu_dader'] ?? '08:00') . ' to\'o ' . ($data['tama_remata_dader'] ?? '09:00') . '. Sai loke husi ' . ($data['sai_hahu_dader'] ?? '12:00') . ' to\'o ' . ($data['sai_remata_dader'] ?? '13:00') . '. Absénsia Lokraik: Tama loke husi ' . ($data['tama_hahu_lokraik'] ?? '14:00') . ' to\'o ' . ($data['tama_remata_lokraik'] ?? '15:00') . '. Sai loke husi ' . ($data['sai_hahu_lokraik'] ?? '17:00') . ' to\'o ' . ($data['sai_remata_lokraik'] ?? '18:00') . '. Favor absénte iha tempu ne\'ebé konese!',
             'data_publikasaun' => date('Y-m-d'),
             'created_at' => date('Y-m-d H:i:s')
         ]);
@@ -634,6 +715,22 @@ class Administrador extends BaseController
         ];
         $this->ApplicationModel->saveData('holidays', $data);
         $this->logAudit('create_holiday', 'holidays', $this->db->insertID(), null, $data);
+        
+        // Automatically create an announcement (avizu)
+        $date_formatted = date('d-m-Y', strtotime($date));
+        $announcement_title = 'Feriadu Foun: ' . $this->postText('title');
+        $announcement_content = 'Halo konesimentu ba hotu-hotu funsionáriu katak iha feriadu foun iha loron ' . $date_formatted;
+        if (!empty($this->postText('description'))) {
+            $announcement_content .= ': ' . $this->postText('description');
+        }
+        $announcement_content .= '.';
+        
+        $this->ApplicationModel->saveData('avizu', [
+            'titulu' => $announcement_title,
+            'konteudu' => $announcement_content,
+            'data_publikasaun' => date('Y-m-d'),
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
 
         session()->setFlashdata('success', 'Feriadu aumenta ona.');
         return redirect()->back();
@@ -656,10 +753,92 @@ class Administrador extends BaseController
     public function lisensa()
     {
         $data = array_merge($this->data, [
-            'title' => 'Jestaun Lisensa',
-            'lisensa' => $this->ApplicationModel->getLisensa(),
+            'title'       => 'Jestaun Lisensa',
+            'lisensa'     => $this->ApplicationModel->getLisensa(),
+            'funsionariu' => $this->ApplicationModel->getFunsionariu(),
+            'tipu_lisensa' => $this->ApplicationModel->getTipuLisensa(),
         ]);
         return view('pages/administrador/lisensa', $data);
+    }
+
+    public function adminCreateLisensa()
+    {
+        if (!$this->validate([
+            'funsionariu_id' => 'required|is_natural_no_zero',
+            'tipu_lisensa'   => 'required|max_length[100]',
+            'sesaun'         => 'required|in_list[Loron Tomak,Dader,Lokraik]',
+            'data_hahu'      => 'required|valid_date[Y-m-d]',
+            'data_remata'    => 'required|valid_date[Y-m-d]',
+            'razaun'         => 'required|min_length[3]|max_length[1000]',
+        ])) {
+            return $this->backWithError(implode(' ', $this->validator->getErrors()));
+        }
+
+        $funsionariu_id = (int) $this->request->getPost('funsionariu_id');
+        $tipu_lisensa   = $this->postText('tipu_lisensa');
+        $sesaun         = $this->postText('sesaun');
+        $data_hahu      = $this->request->getPost('data_hahu');
+        $data_remata    = $this->request->getPost('data_remata');
+        $razaun         = $this->postText('razaun');
+
+        // Validate date range
+        if ($data_remata < $data_hahu) {
+            return $this->backWithError('Data remata la bele kiik liu data hahu.');
+        }
+
+        // Half-day: only one day allowed
+        if (in_array($sesaun, ['Dader', 'Lokraik'], true) && $data_hahu !== $data_remata) {
+            return $this->backWithError('Lisensa Dader/Lokraik deit bele ba loron ida de\'it.');
+        }
+
+        // Validate funsionariu exists
+        $funsionariu = $this->db->table('funsionariu')->where('id', $funsionariu_id)->get()->getRowArray();
+        if (!$funsionariu) {
+            return $this->backWithError('Funsionáriu la konese.');
+        }
+
+        // Save as Aprovadu immediately (admin-created)
+        $record = [
+            'funsionariu_id' => $funsionariu_id,
+            'tipu_lisensa'   => $tipu_lisensa,
+            'sesaun'         => $sesaun,
+            'data_hahu'      => $data_hahu,
+            'data_remata'    => $data_remata,
+            'razaun'         => $razaun,
+            'estadu_lisensa' => 'Aprovadu',
+            'komentariu_admin' => 'Kria diretamente husi Administrasaun.',
+            'created_at'     => date('Y-m-d H:i:s'),
+        ];
+
+        $this->ApplicationModel->saveData('lisensa', $record);
+        $newId = $this->db->insertID();
+
+        // Update prezensa records to mark as Lisensa
+        if ($sesaun === 'Loron Tomak') {
+            $dates = [];
+            $cur = strtotime($data_hahu);
+            $end = strtotime($data_remata);
+            while ($cur <= $end) {
+                $dates[] = date('Y-m-d', $cur);
+                $cur = strtotime('+1 day', $cur);
+            }
+            foreach ($dates as $d) {
+                $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $d)
+                    ->update(['estadu_prezensa' => 'Lisensa']);
+            }
+        } else {
+            $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $data_hahu)
+                ->update(['estadu_prezensa' => 'Loron Sorin']);
+        }
+
+        // Recalculate leave balance
+        for ($year = (int) date('Y', strtotime($data_hahu)); $year <= (int) date('Y', strtotime($data_remata)); $year++) {
+            $this->ApplicationModel->recalculateLeaveBalance($funsionariu_id, $tipu_lisensa, $year);
+        }
+
+        $this->logAudit('admin_create_lisensa', 'lisensa', $newId, null, $record);
+        session()->setFlashdata('success', "Lisensa ba {$funsionariu['naran_kompletu']} kria no aprovadu ona!");
+        return redirect()->back();
     }
 
     public function leaveBalance()
@@ -670,6 +849,7 @@ class Administrador extends BaseController
             'year' => $year,
             'balances' => $this->ApplicationModel->getLeaveBalances(year: $year),
             'funsionariu' => $this->ApplicationModel->getFunsionariu(),
+            'tipu_lisensa' => $this->ApplicationModel->getTipuLisensa(),
         ]);
 
         return view('pages/administrador/leave_balance', $data);
@@ -728,6 +908,77 @@ class Administrador extends BaseController
         return redirect()->back();
     }
 
+    public function createTipuLisensa()
+    {
+        $naran = $this->postText('naran_tipu');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran tipu lisensa tenke prense no labele liu karakter 100.');
+        }
+
+        if ($this->valueExists('tipu_lisensa', 'naran_tipu', $naran)) {
+            return $this->backWithError('Tipu lisensa nee iha ona.');
+        }
+
+        $this->ApplicationModel->saveData('tipu_lisensa', [
+            'naran_tipu' => $naran,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        session()->setFlashdata('success', 'Tipu lisensa foun aumenta ona!');
+        return redirect()->back();
+    }
+
+    public function updateTipuLisensa($id)
+    {
+        $naran = $this->postText('naran_tipu');
+        if ($naran === '' || strlen($naran) > 100) {
+            return $this->backWithError('Naran tipu lisensa tenke prense no labele liu karakter 100.');
+        }
+
+        if ($this->valueExists('tipu_lisensa', 'naran_tipu', $naran, $id)) {
+            return $this->backWithError('Tipu lisensa ho naran nee iha ona.');
+        }
+
+        $this->ApplicationModel->updateData('tipu_lisensa', [
+            'naran_tipu' => $naran,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $id]);
+
+        session()->setFlashdata('success', 'Tipu lisensa atualiza ona!');
+        return redirect()->back();
+    }
+
+    public function deleteTipuLisensa($id)
+    {
+        $tipu = $this->ApplicationModel->getTipuLisensa($id);
+        if (!$tipu) {
+            return $this->backWithError('Tipu lisensa la konese.');
+        }
+
+        $naranTipu = $tipu['naran_tipu'];
+
+        // Count records to inform audit log
+        $totalBalansu = $this->db->table('leave_balances')->where('leave_type', $naranTipu)->countAllResults();
+        $totalLisensa = $this->db->table('lisensa')->where('tipu_lisensa', $naranTipu)->countAllResults();
+
+        // Cascade delete: remove all leave_balances with this leave_type
+        $this->db->table('leave_balances')->where('leave_type', $naranTipu)->delete();
+
+        // Cascade delete: remove all lisensa requests with this leave_type
+        $this->db->table('lisensa')->where('tipu_lisensa', $naranTipu)->delete();
+
+        // Finally delete the tipu_lisensa itself
+        $this->ApplicationModel->deleteData('tipu_lisensa', ['id' => $id]);
+
+        $this->logAudit('delete_tipu_lisensa', 'tipu_lisensa', $id, $tipu, [
+            'balansu_deleted' => $totalBalansu,
+            'lisensa_deleted' => $totalLisensa,
+        ]);
+
+        session()->setFlashdata('success', "Tipu lisensa '{$naranTipu}' hamos ona! (Balansu hamos: {$totalBalansu}, Pedidu hamos: {$totalLisensa})");
+        return redirect()->back();
+    }
+
     public function aprovaLisensa($id)
     {
         $estadu = $this->request->getPost('estadu_lisensa');
@@ -757,6 +1008,7 @@ class Administrador extends BaseController
         ], ['id' => $id]);
 
         if ($estadu === 'Aprovadu') {
+            $sesaun = $lisensa['sesaun'] ?? 'Loron Tomak';
             $start = new \DateTime($lisensa['data_hahu']);
             $end = new \DateTime($lisensa['data_remata']);
             $period = new \DatePeriod($start, new \DateInterval('P1D'), $end->modify('+1 day'));
@@ -768,24 +1020,80 @@ class Administrador extends BaseController
                     ->where('data_prezensa', $checkDate)
                     ->get()->getRowArray();
 
-                if ($existing && in_array($existing['estadu_prezensa'], ['Prezente', 'Tardi'], true)) {
-                    $this->db->transRollback();
-                    session()->setFlashdata('error', 'Lisensa la bele aprova tanba iha data neebe funsionariu prezente/tardi ona.');
-                    return redirect()->back();
-                }
-
-                if ($existing) {
-                    $this->ApplicationModel->updateData('prezensa', [
-                        'estadu_prezensa' => 'Lisensa',
-                        'updated_at'      => date('Y-m-d H:i:s')
-                    ], ['id' => $existing['id']]);
-                } else {
-                    $this->ApplicationModel->saveData('prezensa', [
-                        'funsionariu_id'  => $lisensa['funsionariu_id'],
-                        'data_prezensa'   => $checkDate,
-                        'estadu_prezensa' => 'Lisensa',
-                        'created_at'      => date('Y-m-d H:i:s'),
-                    ]);
+                if ($sesaun === 'Loron Tomak') {
+                    // Full-day: block if employee already attended
+                    if ($existing && in_array($existing['estadu_prezensa'], ['Prezente', 'Loron Sorin'], true)) {
+                        $this->db->transRollback();
+                        session()->setFlashdata('error', 'Lisensa la bele aprova tanba iha data neebe funsionariu prezente/loron sorin ona.');
+                        return redirect()->back();
+                    }
+                    if ($existing) {
+                        $this->ApplicationModel->updateData('prezensa', [
+                            'estadu_prezensa' => 'Lisensa',
+                            'updated_at'      => date('Y-m-d H:i:s')
+                        ], ['id' => $existing['id']]);
+                    } else {
+                        $this->ApplicationModel->saveData('prezensa', [
+                            'funsionariu_id'  => $lisensa['funsionariu_id'],
+                            'data_prezensa'   => $checkDate,
+                            'estadu_prezensa' => 'Lisensa',
+                            'created_at'      => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                } elseif ($sesaun === 'Dader') {
+                    // Dader: block if already clocked in for Dader
+                    if ($existing && !empty($existing['oras_tama_dader'])) {
+                        $this->db->transRollback();
+                        session()->setFlashdata('error', 'Lisensa Dader la bele aprova tanba funsionariu tama dader ona iha ' . $checkDate . '.');
+                        return redirect()->back();
+                    }
+                    $updateFields = [
+                        'oras_tama_dader' => 'LISENSA',
+                        'oras_sai_dader'  => 'LISENSA',
+                        'updated_at'      => date('Y-m-d H:i:s'),
+                    ];
+                    if ($existing) {
+                        // Recalculate status: if lokraik already done => Prezente
+                        $hasTamaLokraik = !empty($existing['oras_tama_lokraik']);
+                        $hasSaiLokraik  = !empty($existing['oras_sai_lokraik']);
+                        $newStatus = ($hasTamaLokraik && $hasSaiLokraik) ? 'Prezente' : 'Loron Sorin';
+                        $updateFields['estadu_prezensa'] = $newStatus;
+                        $this->ApplicationModel->updateData('prezensa', $updateFields, ['id' => $existing['id']]);
+                    } else {
+                        $this->ApplicationModel->saveData('prezensa', array_merge($updateFields, [
+                            'funsionariu_id'  => $lisensa['funsionariu_id'],
+                            'data_prezensa'   => $checkDate,
+                            'estadu_prezensa' => 'Loron Sorin',
+                            'created_at'      => date('Y-m-d H:i:s'),
+                        ]));
+                    }
+                } elseif ($sesaun === 'Lokraik') {
+                    // Lokraik: block if already clocked in for Lokraik
+                    if ($existing && !empty($existing['oras_tama_lokraik'])) {
+                        $this->db->transRollback();
+                        session()->setFlashdata('error', 'Lisensa Lokraik la bele aprova tanba funsionariu tama lokraik ona iha ' . $checkDate . '.');
+                        return redirect()->back();
+                    }
+                    $updateFields = [
+                        'oras_tama_lokraik' => 'LISENSA',
+                        'oras_sai_lokraik'  => 'LISENSA',
+                        'updated_at'        => date('Y-m-d H:i:s'),
+                    ];
+                    if ($existing) {
+                        // Recalculate status: if dader already done => Prezente
+                        $hasTamaDader = !empty($existing['oras_tama_dader']);
+                        $hasSaiDader  = !empty($existing['oras_sai_dader']);
+                        $newStatus = ($hasTamaDader && $hasSaiDader) ? 'Prezente' : 'Loron Sorin';
+                        $updateFields['estadu_prezensa'] = $newStatus;
+                        $this->ApplicationModel->updateData('prezensa', $updateFields, ['id' => $existing['id']]);
+                    } else {
+                        $this->ApplicationModel->saveData('prezensa', array_merge($updateFields, [
+                            'funsionariu_id'  => $lisensa['funsionariu_id'],
+                            'data_prezensa'   => $checkDate,
+                            'estadu_prezensa' => 'Loron Sorin',
+                            'created_at'      => date('Y-m-d H:i:s'),
+                        ]));
+                    }
                 }
             }
         }
@@ -818,6 +1126,7 @@ class Administrador extends BaseController
             'salariu_detallu' => $this->ApplicationModel->getSalariuDetalluBySalariuIds(array_column($salariu, 'id')),
             'funsionariu' => $this->ApplicationModel->getFunsionariu(),
             'subsidiu' => $this->ApplicationModel->getSubsidiu(),
+            'pozisaun' => $this->ApplicationModel->getPozisaun(),
             'payroll_periods' => $this->db->table('payroll_periods')->orderBy('tinan', 'DESC')->orderBy('fulan', 'DESC')->get()->getResultArray(),
         ]);
         return view('pages/administrador/salariu', $data);
@@ -867,6 +1176,8 @@ class Administrador extends BaseController
         $naran = $this->postText('naran_subsidiu');
         $valor = $this->postText('valor_padrao');
         $deskrisaun = $this->postText('deskrisaun');
+        $pozisaun_id = $this->postText('pozisaun_id');
+        $tipu_valor = $this->postText('tipu_valor');
 
         if ($naran === '' || strlen($naran) > 100) {
             return $this->backWithError('Naran subsidiu tenke prense no labele liu karakter 100.');
@@ -880,6 +1191,8 @@ class Administrador extends BaseController
 
         $data = [
             'naran_subsidiu' => $naran,
+            'pozisaun_id'    => $pozisaun_id ? (int) $pozisaun_id : null,
+            'tipu_valor'     => $tipu_valor ?: 'Fiksu',
             'valor_padrao'   => (float) $valor,
             'deskrisaun'     => $deskrisaun,
             'created_at'     => date('Y-m-d H:i:s'),
@@ -895,6 +1208,8 @@ class Administrador extends BaseController
         $naran = $this->postText('naran_subsidiu');
         $valor = $this->postText('valor_padrao');
         $deskrisaun = $this->postText('deskrisaun');
+        $pozisaun_id = $this->postText('pozisaun_id');
+        $tipu_valor = $this->postText('tipu_valor');
 
         if ($naran === '' || strlen($naran) > 100) {
             return $this->backWithError('Naran subsidiu tenke prense no labele liu karakter 100.');
@@ -908,6 +1223,8 @@ class Administrador extends BaseController
 
         $data = [
             'naran_subsidiu' => $naran,
+            'pozisaun_id'    => $pozisaun_id ? (int) $pozisaun_id : null,
+            'tipu_valor'     => $tipu_valor ?: 'Fiksu',
             'valor_padrao'   => (float) $valor,
             'deskrisaun'     => $deskrisaun,
             'updated_at'     => date('Y-m-d H:i:s'),
@@ -976,8 +1293,21 @@ class Administrador extends BaseController
             if (!$sub_data) {
                 continue;
             }
+            
+            if (!empty($sub_data['pozisaun_id']) && $sub_data['pozisaun_id'] != $funsionariu['pozisaun_id']) {
+                continue;
+            }
+
+            $valor_subsidiu = 0.0;
+            if (isset($sub_data['tipu_valor']) && $sub_data['tipu_valor'] === 'Persentajen') {
+                $valor_subsidiu = ($salariu_baziku * (float) $sub_data['valor_padrao']) / 100;
+            } else {
+                $valor_subsidiu = (float) $sub_data['valor_padrao'];
+            }
+
+            $sub_data['calculated_valor'] = $valor_subsidiu;
             $selectedSubsidiu[] = $sub_data;
-            $total_subsidiu += (float) $sub_data['valor_padrao'];
+            $total_subsidiu += $valor_subsidiu;
         }
 
         $active_sansauns = $this->db->table('sansaun')
@@ -1028,7 +1358,7 @@ class Administrador extends BaseController
             $this->ApplicationModel->saveData('salariu_detallu', [
                 'salariu_id'       => $salariu_id,
                 'naran_komponente' => $sub_data['naran_subsidiu'],
-                'valor'            => $sub_data['valor_padrao'],
+                'valor'            => $sub_data['calculated_valor'] ?? $sub_data['valor_padrao'],
                 'tipu'             => 'Subsidiu'
             ]);
         }

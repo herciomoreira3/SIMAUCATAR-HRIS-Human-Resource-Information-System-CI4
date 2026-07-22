@@ -32,7 +32,7 @@ Ita sei uza **ApexCharts**. La presiza `npm install`, tau de'it CDN ne'e iha fil
 
 ### 1. Lista Relatóriu ne'ebé Sei Kria
 *   **Relatóriu Funsionáriu:** Filtru (Departamentu, Pozisaun). Hatudu lista funsionáriu. Dadus: NID, Naran Kompletu, Departamentu, Pozisaun, Estadu, Data Hahu Servisu.
-*   **Relatóriu Prezensa:** Filtru (Data Hahu - Data Remata, Departamentu). Hatudu rekapitulasaun: Total Prezente, Falta, Tardi, Lisensa.
+*   **Relatóriu Prezensa:** Filtru (Data Hahu - Data Remata, Departamentu). Hatudu rekapitulasaun: Total Prezente, Falta, Loron Sorin, Lisensa.
 *   **Relatóriu Saláriu:** Filtru (Fulan, Tinan). Hatudu rekapitulasaun: Saláriu Báziku, Total Subsídiu, Total Deskontu, Saláriu Líkuidu.
 *   **Relatóriu Lisensa:** Filtru (Data Hahu - Data Remata, Estadu Lisensa). Hatudu dadus cuti/lisensa husi funsionáriu sira.
 *   **Relatóriu Sansaun:** Filtru (Fulan/Tinan, Estadu Sansaun). Hatudu lista sansaun (Ativu, Konkluidu, Retira) no valor_total (potongan).
@@ -69,7 +69,7 @@ Tenke uza `SUM` no `IF` SQL atu sura total:
 SELECT f.nid, f.naran_kompletu,
   SUM(IF(p.estadu_prezensa = 'Prezente', 1, 0)) as total_prezente,
   SUM(IF(p.estadu_prezensa = 'Falta', 1, 0)) as total_falta,
-  SUM(IF(p.estadu_prezensa = 'Tardi', 1, 0)) as total_tardi,
+  SUM(IF(p.estadu_prezensa = 'Loron Sorin', 1, 0)) as total_loron_sorin,
   SUM(IF(p.estadu_prezensa = 'Lisensa', 1, 0)) as total_lisensa
 FROM prezensa p
 JOIN funsionariu f ON p.funsionariu_id = f.id
@@ -102,8 +102,8 @@ Aumenta 2 Gráfiku (Chart) Prinsipál:
 
 **A. Gráfiku Tendénsia Prezensa Mensál (Line Chart)**
 *   **Fatin:** Parte leten iha dashboard (Luan 100%).
-*   **Dadus Controller:** Sura total 'Prezente', 'Falta', 'Tardi' loroloron ba loron 30 ikus nian. Haruka hanesan JSON array (data) no JSON array (valór).
-*   **Lójika Frontend (ApexCharts):** Kria gráfiku liña (line chart) ho Eixu X = Loron, Eixu Y = Total Funsionáriu. Tau kór Matak (Prezente), Mean (Falta), Kinur (Tardi).
+*   **Dadus Controller:** Sura total 'Prezente', 'Falta', 'Loron Sorin' loroloron ba loron 30 ikus nian. Haruka hanesan JSON array (data) no JSON array (valór).
+*   **Lójika Frontend (ApexCharts):** Kria gráfiku liña (line chart) ho Eixu X = Loron, Eixu Y = Total Funsionáriu. Tau kór Matak (Prezente), Mean (Falta), Kinur (Loron Sorin).
 
 **B. Gráfiku Kompozisaun Departamentu (Donut Chart)**
 *   **Fatin:** Parte okos ka sorin.
@@ -115,8 +115,8 @@ Kada funsionáriu bele haree ninia dezempeñu rasik.
 
 **A. Gráfiku Dezempeñu Prezensa Pessoál (Pie Chart)**
 *   **Fatin:** Parte sorin loos ka klaran.
-*   **Dadus Controller:** Foti total (COUNT) Prezente, Falta, Tardi, Lisensa bazeia ba ID Funsionáriu ne'ebé login ba fulan/tinan atual.
-*   **Lójika Frontend:** Render Pie Chart ho label persentajen. Ezemplu: "Prezente 80%, Falta 10%, Tardi 10%".
+*   **Dadus Controller:** Foti total (COUNT) Prezente, Falta, Loron Sorin, Lisensa bazeia ba ID Funsionáriu ne'ebé login ba fulan/tinan atual.
+*   **Lójika Frontend:** Render Pie Chart ho label persentajen. Ezemplu: "Prezente 80%, Falta 10%, Loron Sorin 10%".
 
 ### 3. Vizualizasaun Adisionál iha Módulu Relatóriu (Bonus Level)
 Bainhira Administrador filtra dadus (ezemplu: Relatóriu Prezensa ba fulan Jullu):

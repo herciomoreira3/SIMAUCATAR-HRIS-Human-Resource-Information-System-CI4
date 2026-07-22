@@ -1,6 +1,6 @@
 <?= $this->extend('layouts/main'); ?>
 <?= $this->section('content'); ?>
-<h1 class="h3 mb-3"><strong>Jestaun</strong> Pozisaun</h1>
+<h1 class="h3 mb-3"><strong>Jestaun</strong> Grau</h1>
 
 <?php if (session()->getFlashdata('success')) : ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -20,16 +20,19 @@
     <div class="col-md-5">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Aumenta Pozisaun</h5>
+                <h5 class="card-title mb-0">Aumenta Grau</h5>
             </div>
             <div class="card-body">
-                <form action="<?= base_url('administrador/pozisaun') ?>" method="post">
+                <form action="<?= base_url('administrador/grau') ?>" method="post">
                     <?= csrf_field() ?>
                     <div class="mb-3">
-                        <label class="form-label">Naran Pozisaun</label>
-                        <input type="text" name="naran_pozisaun" class="form-control" required>
+                        <label class="form-label">Naran Grau</label>
+                        <input type="text" name="naran_grau" class="form-control" required>
                     </div>
-
+                    <div class="mb-3">
+                        <label class="form-label">Saláriu Báziku ($)</label>
+                        <input type="number" step="0.01" name="salariu_baziku" class="form-control" required>
+                    </div>
                     <button type="submit" class="btn btn-primary">Submete</button>
                 </form>
             </div>
@@ -38,25 +41,27 @@
     <div class="col-md-7">
         <div class="card">
             <div class="card-header">
-                <h5 class="card-title mb-0">Lista Pozisaun</h5>
+                <h5 class="card-title mb-0">Lista Grau</h5>
             </div>
             <div class="card-body">
                 <table class="table table-hover datatable">
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Naran Pozisaun</th>
+                            <th>Naran Grau</th>
+                            <th>Saláriu Báziku</th>
                             <th>Asaun</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach($pozisaun as $i => $p): ?>
+                        <?php foreach($grau as $i => $g): ?>
                         <tr>
                             <td><?= $i+1 ?></td>
-                            <td><?= esc($p['naran_pozisaun']) ?></td>
+                            <td><?= esc($g['naran_grau']) ?></td>
+                            <td>$ <?= number_format($g['salariu_baziku'], 2) ?></td>
                             <td>
-                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $p['id'] ?>">Edit</button>
-                                <form action="<?= base_url('administrador/pozisaun/delete/'.$p['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos pozisaun ne\'e?')">
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit<?= $g['id'] ?>">Edit</button>
+                                <form action="<?= base_url('administrador/grau/delete/'.$g['id']) ?>" method="post" class="d-inline" onsubmit="return confirm('Hamos grau ne\'e?')">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="_method" value="DELETE">
                                     <button type="submit" class="btn btn-danger btn-sm">Hamos</button>
@@ -65,19 +70,23 @@
                         </tr>
 
                         <!-- Modal Edit -->
-                        <div class="modal fade" id="modalEdit<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
+                        <div class="modal fade" id="modalEdit<?= $g['id'] ?>" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog">
                                 <div class="modal-content">
-                                    <form action="<?= base_url('administrador/pozisaun/update/'.$p['id']) ?>" method="post">
-                    <?= csrf_field() ?>
+                                    <form action="<?= base_url('administrador/grau/update/'.$g['id']) ?>" method="post">
+                                        <?= csrf_field() ?>
                                         <div class="modal-header">
-                                            <h5 class="modal-title">Edit Pozisaun</h5>
+                                            <h5 class="modal-title">Edit Grau</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Taka"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div class="mb-3">
-                                                <label class="form-label">Naran Pozisaun</label>
-                                                <input type="text" name="naran_pozisaun" class="form-control" value="<?= esc($p['naran_pozisaun']) ?>" required>
+                                                <label class="form-label">Naran Grau</label>
+                                                <input type="text" name="naran_grau" class="form-control" value="<?= esc($g['naran_grau']) ?>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Saláriu Báziku ($)</label>
+                                                <input type="number" step="0.01" name="salariu_baziku" class="form-control" value="<?= $g['salariu_baziku'] ?>" required>
                                             </div>
                                         </div>
                                         <div class="modal-footer">

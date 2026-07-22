@@ -44,7 +44,7 @@ Targetu: Fulan kotuk tomak (Loron 1 to'o Loron 30/31).
     *   **85% Probabilidade:** `estadu_prezensa` = 'Prezente' (Set `oras_tama` foti random entre 07:30 to'o 08:30, `oras_sai` foti random entre 16:30 to'o 17:30).
     *   **10% Probabilidade:** `estadu_prezensa` = 'Falta' (Oras mamuk).
     *   **5% Probabilidade:** `estadu_prezensa` = 'Lisensa' (Oras mamuk).
-    *(ATENSAUN: Keta hatama estadu 'Tardi'!).*
+    *(ATENSAUN: Keta hatama estadu 'Tardi'! Agora uza 'Loron Sorin').*
 
 ### FASE 5: Jera Dadus Mockup Lisensa (Cuti)
 Targetu: Kria pedidu lisensa ba funsionáriu sira ne'ebé hetan status absénsia 'Lisensa' iha Fase 4.

@@ -10,16 +10,16 @@
             </div>
             <div class="card-body">
                 <form action="<?= base_url('administrador/relatoriu/funsionariu') ?>" method="get" class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Departamentu</label>
-                        <select name="departamentu_id" class="form-select">
+                    <div class="col-md-3">
+                        <label class="form-label">Diresaun</label>
+                        <select name="diresaun_id" class="form-select">
                             <option value="">-- Hotu-hotu --</option>
-                            <?php foreach($departamentu as $d): ?>
-                                <option value="<?= $d['id'] ?>" <?= $filter['departamentu_id'] == $d['id'] ? 'selected' : '' ?>><?= $d['naran_departamentu'] ?></option>
+                            <?php foreach($diresaun as $d): ?>
+                                <option value="<?= $d['id'] ?>" <?= $filter['diresaun_id'] == $d['id'] ? 'selected' : '' ?>><?= $d['naran_diresaun'] ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Pozisaun</label>
                         <select name="pozisaun_id" class="form-select">
                             <option value="">-- Hotu-hotu --</option>
@@ -28,8 +28,26 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Filtra Relatóriu</button>
+                    <div class="col-md-3">
+                        <label class="form-label">Kategoria</label>
+                        <select name="kategoria_id" class="form-select">
+                            <option value="">-- Hotu-hotu --</option>
+                            <?php foreach($kategoria as $k): ?>
+                                <option value="<?= $k['id'] ?>" <?= $filter['kategoria_id'] == $k['id'] ? 'selected' : '' ?>><?= $k['naran_kategoria'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Grau</label>
+                        <select name="grau_id" class="form-select">
+                            <option value="">-- Hotu-hotu --</option>
+                            <?php foreach($grau as $g): ?>
+                                <option value="<?= $g['id'] ?>" <?= $filter['grau_id'] == $g['id'] ? 'selected' : '' ?>><?= $g['naran_grau'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary px-4">Filtra Relatóriu</button>
                     </div>
                 </form>
             </div>
@@ -45,15 +63,19 @@
                 <div class="d-flex gap-2">
                     <form action="<?= base_url('administrador/relatoriu/export/funsionariu') ?>" method="post">
                     <?= csrf_field() ?>
-                        <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
+                        <input type="hidden" name="diresaun_id" value="<?= $filter['diresaun_id'] ?>">
                         <input type="hidden" name="pozisaun_id" value="<?= $filter['pozisaun_id'] ?>">
+                        <input type="hidden" name="kategoria_id" value="<?= $filter['kategoria_id'] ?>">
+                        <input type="hidden" name="grau_id" value="<?= $filter['grau_id'] ?>">
                         <input type="hidden" name="export_type" value="pdf">
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
                     <form action="<?= base_url('administrador/relatoriu/export/funsionariu') ?>" method="post">
                     <?= csrf_field() ?>
-                        <input type="hidden" name="departamentu_id" value="<?= $filter['departamentu_id'] ?>">
+                        <input type="hidden" name="diresaun_id" value="<?= $filter['diresaun_id'] ?>">
                         <input type="hidden" name="pozisaun_id" value="<?= $filter['pozisaun_id'] ?>">
+                        <input type="hidden" name="kategoria_id" value="<?= $filter['kategoria_id'] ?>">
+                        <input type="hidden" name="grau_id" value="<?= $filter['grau_id'] ?>">
                         <input type="hidden" name="export_type" value="excel">
                         <button type="submit" class="btn btn-success btn-sm"><i data-feather="grid"></i> Exporta Excel</button>
                     </form>
@@ -67,9 +89,10 @@
                                 <th>NID</th>
                                 <th>Naran Kompletu</th>
                                 <th>Seksu</th>
-                                <th>Departamentu</th>
+                                <th>Diresaun</th>
                                 <th>Pozisaun</th>
                                 <th>Kategoria</th>
+                                <th>Grau</th>
                                 <th>Data Hahu</th>
                             </tr>
                         </thead>
@@ -79,9 +102,10 @@
                                 <td><?= $f['nid'] ?></td>
                                 <td><?= $f['naran_kompletu'] ?></td>
                                 <td><?= $f['seksu'] ?></td>
-                                <td><?= $f['naran_departamentu'] ?></td>
+                                <td><?= $f['naran_diresaun'] ?></td>
                                 <td><?= $f['naran_pozisaun'] ?></td>
                                 <td><?= $f['naran_kategoria'] ?></td>
+                                <td><?= $f['naran_grau'] ?? '-' ?></td>
                                 <td><?= date('d-m-Y', strtotime($f['data_hahu_servisu'])) ?></td>
                             </tr>
                             <?php endforeach; ?>

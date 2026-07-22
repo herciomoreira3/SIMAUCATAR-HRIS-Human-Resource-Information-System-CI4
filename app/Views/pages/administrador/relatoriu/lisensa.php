@@ -27,8 +27,17 @@
                             <option value="Rejeitadu" <?= $filter['estadu'] == 'Rejeitadu' ? 'selected' : '' ?>>Rejeitadu</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Filtra Relatóriu</button>
+                    <div class="col-md-3">
+                        <label class="form-label">Tipu Lisensa</label>
+                        <select name="tipu_lisensa" class="form-select">
+                            <option value="">-- Hotu-hotu --</option>
+                            <?php foreach ($tipu_lisensa as $tl): ?>
+                                <option value="<?= esc($tl['naran_tipu']) ?>" <?= ($filter['tipu_lisensa'] ?? '') === $tl['naran_tipu'] ? 'selected' : '' ?>><?= esc($tl['naran_tipu']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary px-4">Filtra Relatóriu</button>
                     </div>
                 </form>
             </div>
@@ -47,6 +56,7 @@
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">
+                        <input type="hidden" name="tipu_lisensa" value="<?= $filter['tipu_lisensa'] ?? '' ?>">
                         <input type="hidden" name="export_type" value="pdf">
                         <button type="submit" class="btn btn-danger btn-sm"><i data-feather="file"></i> Exporta PDF</button>
                     </form>
@@ -55,6 +65,7 @@
                         <input type="hidden" name="data_hahu" value="<?= $filter['data_hahu'] ?>">
                         <input type="hidden" name="data_remata" value="<?= $filter['data_remata'] ?>">
                         <input type="hidden" name="estadu" value="<?= $filter['estadu'] ?>">
+                        <input type="hidden" name="tipu_lisensa" value="<?= $filter['tipu_lisensa'] ?? '' ?>">
                         <input type="hidden" name="export_type" value="excel">
                         <button type="submit" class="btn btn-success btn-sm"><i data-feather="grid"></i> Exporta Excel</button>
                     </form>

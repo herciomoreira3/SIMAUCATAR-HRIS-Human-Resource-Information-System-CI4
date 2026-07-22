@@ -112,7 +112,7 @@
     <div class="col-12 col-lg-4 d-flex">
         <div class="card flex-fill w-100">
             <div class="card-header">
-                <h5 class="card-title">Kompozisaun Departamentu</h5>
+                <h5 class="card-title">Kompozisaun Diresaun</h5>
             </div>
             <div class="card-body d-flex">
                 <div class="align-self-center w-100">
@@ -210,8 +210,8 @@
                 name: 'Prezente',
                 data: <?= $chart_prezente ?>
             }, {
-                name: 'Tardi',
-                data: <?= $chart_tardi ?>
+                name: 'Loron Sorin',
+                data: <?= $chart_loron_sorin ?>
             }, {
                 name: 'Falta',
                 data: <?= $chart_falta ?>
@@ -258,10 +258,10 @@
             tooltip: { x: { format: 'dd/MM' } },
         }).render();
 
-        // Department Composition Chart
+        // Diresaun Composition Chart
         var deptData = <?= $dept_comp ?>;
         if (!Array.isArray(deptData) || deptData.length === 0) {
-            deptData = [{ naran_departamentu: 'La iha dadus', total: 0 }];
+            deptData = [{ naran_diresaun: 'La iha dadus', total: 0 }];
         }
         new ApexCharts(document.querySelector("#chart-dept-comp"), {
             series: deptData.map(item => parseInt(item.total)),
@@ -270,7 +270,7 @@
                 height: 320,
                 fontFamily: 'Inter, sans-serif'
             },
-            labels: deptData.map(item => item.naran_departamentu),
+            labels: deptData.map(item => item.naran_diresaun),
             colors: ['#2563eb', '#7c3aed', '#db2777', '#ea580c', '#16a34a', '#ca8a04'],
             stroke: { width: 0 },
             plotOptions: {

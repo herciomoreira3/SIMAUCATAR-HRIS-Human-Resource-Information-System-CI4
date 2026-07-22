@@ -16,6 +16,11 @@
         </div>
     <?php endforeach; ?>
 </div>
+<?php else: ?>
+<div class="alert alert-warning mb-3">
+    <i class="align-middle me-1" data-feather="alert-triangle"></i>
+    Atensaun: Ita-nia balansu lisensa ba tinan <?= date('Y') ?> seidauk jera husi admin. Favor kontaktu admin atu bele hatama pedidu lisensa.
+</div>
 <?php endif; ?>
 
 <div class="row">
@@ -38,20 +43,39 @@
                     <div class="mb-3">
                         <label class="form-label">Tipu Lisensa</label>
                         <select name="tipu_lisensa" class="form-select" required>
-                            <option value="Moras">Moras</option>
-                            <option value="Anuál">Anuál</option>
-                            <option value="Maternidade">Maternidade</option>
-                            <option value="Lutu">Lutu</option>
-                            <option value="Seluk">Seluk</option>
+                            <?php foreach ($tipu_lisensa as $tl): ?>
+                                <?php 
+                                $bal = null;
+                                if (!empty($leave_balances)) {
+                                    foreach ($leave_balances as $b) {
+                                        if ($b['leave_type'] === $tl['naran_tipu']) {
+                                            $bal = $b;
+                                            break;
+                                        }
+                                    }
+                                }
+                                $balText = ($bal !== null) ? ' (Restu: ' . number_format($bal['remaining_days'], 1) . ' loron)' : ' (Restu: 0.0 loron)';
+                                ?>
+                                <option value="<?= esc($tl['naran_tipu']) ?>"><?= esc($tl['naran_tipu']) ?><?= $balText ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Data Hahu</label>
-                        <input type="date" name="data_hahu" class="form-control" required>
+                        <label class="form-label">Sesaun</label>
+                        <select name="sesaun" id="sesaunSelect" class="form-select" required onchange="handleSesaunChange(this)">
+                            <option value="Loron Tomak">Loron Tomak</option>
+                            <option value="Dader">Dader</option>
+                            <option value="Lokraik">Lokraik</option>
+                        </select>
+                        <div class="form-text text-muted">Hili Dader/Lokraik ba lisensa meiu-dia (0.5 loron).</div>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Data Hahu</label>
+                        <input type="date" name="data_hahu" id="dataHahu" class="form-control" required onchange="syncDataRemata()">
+                    </div>
+                    <div class="mb-3" id="dataRemataWrapper">
                         <label class="form-label">Data Remata</label>
-                        <input type="date" name="data_remata" class="form-control" required>
+                        <input type="date" name="data_remata" id="dataRemata" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Razaun</label>
@@ -77,6 +101,7 @@
                         <thead>
                             <tr>
                                 <th>Tipu</th>
+                                <th>Sesaun</th>
                                 <th>Data</th>
                                 <th>Razaun</th>
                                 <th>Estadu</th>
@@ -87,7 +112,15 @@
                             <tr>
                                 <td><?= $l['tipu_lisensa'] ?></td>
                                 <td>
-                                    <?= date('d-m-Y', strtotime($l['data_hahu'])) ?> - <?= date('d-m-Y', strtotime($l['data_remata'])) ?>
+                                    <?php
+                                    $sesaun = $l['sesaun'] ?? 'Loron Tomak';
+                                    $sesaunBadge = $sesaun === 'Dader' ? 'warning' : ($sesaun === 'Lokraik' ? 'info' : 'secondary');
+                                    ?>
+                                    <span class="badge bg-<?= $sesaunBadge ?>"><?= $sesaun ?></span>
+                                </td>
+                                <td>
+                                    <?= date('d-m-Y', strtotime($l['data_hahu'])) ?>
+                                    <?= ($l['data_hahu'] !== $l['data_remata']) ? '- ' . date('d-m-Y', strtotime($l['data_remata'])) : '' ?>
                                 </td>
                                 <td><?= $l['razaun'] ?></td>
                                 <td>
@@ -104,4 +137,27 @@
         </div>
     </div>
 </div>
+
+<script>
+function handleSesaunChange(select) {
+    const isHalfDay = select.value === 'Dader' || select.value === 'Lokraik';
+    const wrapper = document.getElementById('dataRemataWrapper');
+    const dataRemata = document.getElementById('dataRemata');
+    if (isHalfDay) {
+        wrapper.style.display = 'none';
+        dataRemata.removeAttribute('required');
+        syncDataRemata();
+    } else {
+        wrapper.style.display = '';
+        dataRemata.setAttribute('required', 'required');
+    }
+}
+
+function syncDataRemata() {
+    const sesaun = document.getElementById('sesaunSelect').value;
+    if (sesaun === 'Dader' || sesaun === 'Lokraik') {
+        document.getElementById('dataRemata').value = document.getElementById('dataHahu').value;
+    }
+}
+</script>
 <?= $this->endSection(); ?>

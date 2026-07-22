@@ -243,22 +243,46 @@ INSERT INTO `papel` (`id`, `naran_papel`) VALUES
 --
 -- Table structure for table `pozisaun`
 --
+-- Table structure for table `grau`
+--
+
+CREATE TABLE `grau` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `naran_grau` varchar(100) DEFAULT NULL,
+  `salariu_baziku` decimal(10,2) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `grau`
+--
+
+INSERT INTO `grau` (`id`, `naran_grau`, `salariu_baziku`) VALUES
+(1, 'Grau 1', 800.00),
+(2, 'Grau 2', 500.00),
+(3, 'Grau 3', 300.00),
+(4, 'Grau 4', 250.00);
+
+-- --------------------------------------------------------
+
+--
 
 CREATE TABLE `pozisaun` (
   `id` int(11) UNSIGNED NOT NULL,
   `naran_pozisaun` varchar(100) DEFAULT NULL,
-  `salariu_baziku` decimal(10,2) DEFAULT NULL
+  `grau_id` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `pozisaun`
 --
 
-INSERT INTO `pozisaun` (`id`, `naran_pozisaun`, `salariu_baziku`) VALUES
-(5, 'Diretor', 800.00),
-(6, 'Xefe Seksaun', 500.00),
-(7, 'Staff', 300.00),
-(8, 'Asistente', 250.00);
+INSERT INTO `pozisaun` (`id`, `naran_pozisaun`, `grau_id`) VALUES
+(5, 'Diretor', 1),
+(6, 'Xefe Seksaun', 2),
+(7, 'Staff', 3),
+(8, 'Asistente', 4);
 
 -- --------------------------------------------------------
 
@@ -1074,6 +1098,8 @@ CREATE TABLE `sessions` (
 CREATE TABLE `subsidiu` (
   `id` int(11) UNSIGNED NOT NULL,
   `naran_subsidiu` varchar(100) NOT NULL,
+  `pozisaun_id` int(11) UNSIGNED DEFAULT NULL,
+  `tipu_valor` enum('Fiksu','Persentajen') DEFAULT 'Fiksu',
   `valor_padrao` decimal(10,2) DEFAULT 0.00,
   `deskrisaun` text DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
@@ -1374,6 +1400,12 @@ ALTER TABLE `papel`
   ADD UNIQUE KEY `naran_papel` (`naran_papel`);
 
 --
+-- Indexes for table `grau`
+--
+ALTER TABLE `grau`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `pozisaun`
 --
 ALTER TABLE `pozisaun`
@@ -1515,6 +1547,12 @@ ALTER TABLE `migrations`
 --
 ALTER TABLE `papel`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `grau`
+--
+ALTER TABLE `grau`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `pozisaun`

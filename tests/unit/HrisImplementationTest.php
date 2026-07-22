@@ -12,9 +12,12 @@ final class HrisImplementationTest extends CIUnitTestCase
     {
         $model = new ApplicationModel();
 
-        $this->assertSame(1, $model->countLeaveDays('2026-06-01', '2026-06-01'));
-        $this->assertSame(3, $model->countLeaveDays('2026-06-01', '2026-06-03'));
-        $this->assertSame(2, $model->countLeaveDays('2025-12-31', '2026-01-02', 2026));
+        $this->assertEquals(1, $model->countLeaveDays('2026-06-01', '2026-06-01'));
+        $this->assertEquals(3, $model->countLeaveDays('2026-06-01', '2026-06-03'));
+        $this->assertEquals(2, $model->countLeaveDays('2025-12-31', '2026-01-02', 2026));
+        // Half-day sesaun always returns 0.5
+        $this->assertEquals(0.5, $model->countLeaveDays('2026-06-01', '2026-06-01', null, 'Dader'));
+        $this->assertEquals(0.5, $model->countLeaveDays('2026-06-01', '2026-06-01', null, 'Lokraik'));
     }
 
     public function testDangerousRoutesUseSafeHttpMethods(): void
@@ -87,7 +90,7 @@ final class HrisImplementationTest extends CIUnitTestCase
 
         $this->assertStringContainsString('window.ApexCharts', $appJs);
         $this->assertStringContainsString('initNotyfSafely', $appJs);
-        $this->assertStringContainsString('chart_tardi', $adminController);
+        $this->assertStringContainsString('chart_loron_sorin', $adminController);
         $this->assertStringContainsString('chart_lisensa', $adminController);
         $this->assertStringContainsString('trend_prezente', $employeeController);
         $this->assertStringContainsString('trend_lisensa', $employeeController);

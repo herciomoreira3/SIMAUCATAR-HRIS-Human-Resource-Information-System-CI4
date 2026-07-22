@@ -100,7 +100,7 @@
                 height: 320,
                 fontFamily: 'Inter, sans-serif'
             },
-            labels: ['Prezente', 'Tardi', 'Falta', 'Lisensa'],
+            labels: ['Prezente', 'Loron Sorin', 'Falta', 'Lisensa'],
             colors: [success, warning, danger, info],
             stroke: { width: 0 },
             plotOptions: {
@@ -131,8 +131,8 @@
                 name: 'Prezente',
                 data: <?= $trend_prezente ?>
             }, {
-                name: 'Tardi',
-                data: <?= $trend_tardi ?>
+                name: 'Loron Sorin',
+                data: <?= $trend_loron_sorin ?>
             }, {
                 name: 'Falta',
                 data: <?= $trend_falta ?>

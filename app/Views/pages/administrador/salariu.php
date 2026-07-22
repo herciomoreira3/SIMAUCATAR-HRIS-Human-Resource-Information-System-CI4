@@ -181,6 +181,8 @@
                             <thead>
                                 <tr>
                                     <th>Naran Subsídiu</th>
+                                    <th>Pozisaun Alvu</th>
+                                    <th>Tipu Valór</th>
                                     <th>Valór Padrão</th>
                                     <th>Deskrisaun</th>
                                     <th>Asaun</th>
@@ -190,7 +192,9 @@
                                 <?php foreach($subsidiu as $sub): ?>
                                 <tr>
                                     <td><?= esc($sub['naran_subsidiu']) ?></td>
-                                    <td>$ <?= number_format($sub['valor_padrao'], 2) ?></td>
+                                    <td><?= esc($sub['naran_pozisaun'] ?? 'Hotu-hotu') ?></td>
+                                    <td><?= esc($sub['tipu_valor'] ?? 'Fiksu') ?></td>
+                                    <td><?= (isset($sub['tipu_valor']) && $sub['tipu_valor'] == 'Persentajen') ? number_format($sub['valor_padrao'], 2).'%' : '$ '.number_format($sub['valor_padrao'], 2) ?></td>
                                     <td><?= esc($sub['deskrisaun']) ?></td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editSubsidiuModal<?= $sub['id'] ?>">Edit</button>
@@ -218,7 +222,23 @@
                                                         <input type="text" name="naran_subsidiu" class="form-control" value="<?= esc($sub['naran_subsidiu']) ?>" required>
                                                     </div>
                                                     <div class="mb-3">
-                                                        <label class="form-label">Valór Padrão ($)</label>
+                                                        <label class="form-label">Pozisaun Alvu (Opcionál)</label>
+                                                        <select name="pozisaun_id" class="form-select">
+                                                            <option value="">-- Aplika ba Hotu-hotu --</option>
+                                                            <?php foreach($pozisaun as $p): ?>
+                                                                <option value="<?= $p['id'] ?>" <?= ($sub['pozisaun_id'] == $p['id']) ? 'selected' : '' ?>><?= esc($p['naran_pozisaun']) ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Tipu Valór</label>
+                                                        <select name="tipu_valor" class="form-select" required>
+                                                            <option value="Fiksu" <?= (($sub['tipu_valor'] ?? 'Fiksu') == 'Fiksu') ? 'selected' : '' ?>>Fiksu ($)</option>
+                                                            <option value="Persentajen" <?= (($sub['tipu_valor'] ?? 'Fiksu') == 'Persentajen') ? 'selected' : '' ?>>Persentajen (%)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Valór Padrão</label>
                                                         <input type="number" step="0.01" name="valor_padrao" class="form-control" value="<?= $sub['valor_padrao'] ?>" required>
                                                     </div>
                                                     <div class="mb-3">
@@ -259,7 +279,23 @@
                             <input type="text" name="naran_subsidiu" class="form-control" required placeholder="Ez: Transporte, Alimentasaun...">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Valór Padrão ($)</label>
+                            <label class="form-label">Pozisaun Alvu (Opcionál)</label>
+                            <select name="pozisaun_id" class="form-select">
+                                <option value="">-- Aplika ba Hotu-hotu --</option>
+                                <?php foreach($pozisaun as $p): ?>
+                                    <option value="<?= $p['id'] ?>"><?= esc($p['naran_pozisaun']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipu Valór</label>
+                            <select name="tipu_valor" class="form-select" required>
+                                <option value="Fiksu">Fiksu ($)</option>
+                                <option value="Persentajen">Persentajen (%)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Valór Padrão</label>
                             <input type="number" step="0.01" name="valor_padrao" class="form-control" value="0.00" required>
                         </div>
                         <div class="mb-3">
@@ -377,9 +413,9 @@
                                 <div class="border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
                                     <?php foreach($subsidiu as $sub): ?>
                                         <div class="form-check">
-                                            <input class="form-check-input subsidiu-check" type="checkbox" name="subsidiu_ids[]" value="<?= $sub['id'] ?>" data-naran="<?= esc($sub['naran_subsidiu']) ?>" data-valor="<?= $sub['valor_padrao'] ?>" id="sub<?= $sub['id'] ?>" onchange="calculateTotal()">
+                                            <input class="form-check-input subsidiu-check" type="checkbox" name="subsidiu_ids[]" value="<?= $sub['id'] ?>" data-naran="<?= esc($sub['naran_subsidiu']) ?>" data-valor="<?= $sub['valor_padrao'] ?>" data-tipu="<?= esc($sub['tipu_valor'] ?? 'Fiksu') ?>" data-pozisaun-id="<?= esc($sub['pozisaun_id'] ?? '') ?>" id="sub<?= $sub['id'] ?>" onchange="calculateTotal()">
                                             <label class="form-check-label text-dark" for="sub<?= $sub['id'] ?>">
-                                                <?= esc($sub['naran_subsidiu']) ?> ($<?= number_format($sub['valor_padrao'], 2) ?>)
+                                                <?= esc($sub['naran_subsidiu']) ?> (<?= ($sub['tipu_valor'] ?? 'Fiksu') == 'Persentajen' ? number_format($sub['valor_padrao'], 2).'%' : '$'.number_format($sub['valor_padrao'], 2) ?>)
                                             </label>
                                         </div>
                                     <?php endforeach; ?>
@@ -487,7 +523,16 @@
 
         // Reset fields
         document.getElementById('inputDeskontu').value = "0.00";
-        document.querySelectorAll('.subsidiu-check').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.subsidiu-check').forEach(cb => {
+            cb.checked = false;
+            var subPozId = cb.getAttribute('data-pozisaun-id');
+            var parentDiv = cb.closest('.form-check');
+            if (subPozId && subPozId !== "" && subPozId != f.pozisaun_id) {
+                parentDiv.style.display = 'none';
+            } else {
+                parentDiv.style.display = 'block';
+            }
+        });
         calculateTotal();
 
         // Switch Modals
@@ -503,7 +548,13 @@
 
         var checkboxes = document.querySelectorAll('.subsidiu-check:checked');
         checkboxes.forEach(function(checkbox) {
-            totalSubsidiu += parseFloat(checkbox.getAttribute('data-valor'));
+            var subVal = parseFloat(checkbox.getAttribute('data-valor')) || 0;
+            var subTipu = checkbox.getAttribute('data-tipu');
+            if (subTipu === 'Persentajen') {
+                totalSubsidiu += (baziku * subVal) / 100;
+            } else {
+                totalSubsidiu += subVal;
+            }
         });
 
         // Available balance before sanction deduction

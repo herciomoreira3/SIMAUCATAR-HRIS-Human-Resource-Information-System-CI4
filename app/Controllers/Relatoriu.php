@@ -24,17 +24,23 @@ class Relatoriu extends BaseController
 
     public function funsionariu()
     {
-        $dept_id = $this->request->getGet('departamentu_id');
+        $dept_id = $this->request->getGet('diresaun_id');
         $poz_id = $this->request->getGet('pozisaun_id');
+        $kat_id = $this->request->getGet('kategoria_id');
+        $grau_id = $this->request->getGet('grau_id');
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Funsionáriu',
-            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id),
-            'departamentu' => $this->ApplicationModel->getDepartamentu(),
+            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id, $kat_id, $grau_id),
+            'diresaun' => $this->ApplicationModel->getDiresaun(),
             'pozisaun' => $this->ApplicationModel->getPozisaun(),
+            'kategoria' => $this->ApplicationModel->getKategoria(),
+            'grau' => $this->ApplicationModel->getGrau(),
             'filter' => [
-                'departamentu_id' => $dept_id,
-                'pozisaun_id' => $poz_id
+                'diresaun_id' => $dept_id,
+                'pozisaun_id' => $poz_id,
+                'kategoria_id' => $kat_id,
+                'grau_id' => $grau_id
             ]
         ]);
         return view('pages/administrador/relatoriu/funsionariu', $data);
@@ -44,16 +50,18 @@ class Relatoriu extends BaseController
     {
         $data_hahu = $this->request->getGet('data_hahu') ?? date('Y-m-01');
         $data_remata = $this->request->getGet('data_remata') ?? date('Y-m-t');
-        $dept_id = $this->request->getGet('departamentu_id');
+        $dept_id = $this->request->getGet('diresaun_id');
+        $estadu = $this->request->getGet('estadu');
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Prezensa',
-            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id),
-            'departamentu' => $this->ApplicationModel->getDepartamentu(),
+            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id, $estadu),
+            'diresaun' => $this->ApplicationModel->getDiresaun(),
             'filter' => [
                 'data_hahu' => $data_hahu,
                 'data_remata' => $data_remata,
-                'departamentu_id' => $dept_id
+                'diresaun_id' => $dept_id,
+                'estadu' => $estadu
             ]
         ]);
         return view('pages/administrador/relatoriu/prezensa', $data);
@@ -80,14 +88,17 @@ class Relatoriu extends BaseController
         $data_hahu = $this->request->getGet('data_hahu') ?? date('Y-m-01');
         $data_remata = $this->request->getGet('data_remata') ?? date('Y-m-t');
         $estadu = $this->request->getGet('estadu');
+        $tipu_lisensa = $this->request->getGet('tipu_lisensa');
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Lisensa',
-            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu),
+            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu, $tipu_lisensa),
+            'tipu_lisensa' => $this->ApplicationModel->getTipuLisensa(),
             'filter' => [
                 'data_hahu' => $data_hahu,
                 'data_remata' => $data_remata,
-                'estadu' => $estadu
+                'estadu' => $estadu,
+                'tipu_lisensa' => $tipu_lisensa
             ]
         ]);
         return view('pages/administrador/relatoriu/lisensa', $data);
@@ -98,14 +109,17 @@ class Relatoriu extends BaseController
         $fulan = $this->request->getGet('fulan') ?? date('m');
         $tinan = $this->request->getGet('tinan') ?? date('Y');
         $estadu = $this->request->getGet('estadu');
+        $tipu_sansaun_id = $this->request->getGet('tipu_sansaun_id');
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Sansaun',
-            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu),
+            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu, $tipu_sansaun_id),
+            'tipu_sansaun' => $this->ApplicationModel->getTipuSansaun(),
             'filter' => [
                 'fulan' => $fulan,
                 'tinan' => $tinan,
-                'estadu' => $estadu
+                'estadu' => $estadu,
+                'tipu_sansaun_id' => $tipu_sansaun_id
             ]
         ]);
         return view('pages/administrador/relatoriu/sansaun', $data);
@@ -115,21 +129,23 @@ class Relatoriu extends BaseController
 
     public function exportFunsionariu()
     {
-        $dept_id = $this->request->getPost('departamentu_id');
+        $dept_id = $this->request->getPost('diresaun_id');
         $poz_id = $this->request->getPost('pozisaun_id');
+        $kat_id = $this->request->getPost('kategoria_id');
+        $grau_id = $this->request->getPost('grau_id');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Funsionáriu',
-            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id),
+            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id, $kat_id, $grau_id),
             'data_print' => date('d-m-Y H:i')
         ];
 
         if ($type == 'pdf') {
             return $this->generatePDF('pages/administrador/relatoriu/export/funsionariu_pdf', $data, 'Relatoriu_Funsionariu.pdf');
         } else {
-            return $this->generateCSV('Relatoriu_Funsionariu.csv', ['NID', 'Naran Kompletu', 'Departamentu', 'Pozisaun', 'Kategoria'], $data['funsionariu'], function($row) {
-                return [$row['nid'], $row['naran_kompletu'], $row['naran_departamentu'], $row['naran_pozisaun'], $row['naran_kategoria']];
+            return $this->generateCSV('Relatoriu_Funsionariu.csv', ['NID', 'Naran Kompletu', 'Diresaun', 'Pozisaun', 'Kategoria', 'Grau'], $data['funsionariu'], function($row) {
+                return [$row['nid'], $row['naran_kompletu'], $row['naran_diresaun'], $row['naran_pozisaun'], $row['naran_kategoria'], $row['naran_grau']];
             });
         }
     }
@@ -138,12 +154,13 @@ class Relatoriu extends BaseController
     {
         $data_hahu = $this->request->getPost('data_hahu');
         $data_remata = $this->request->getPost('data_remata');
-        $dept_id = $this->request->getPost('departamentu_id');
+        $dept_id = $this->request->getPost('diresaun_id');
+        $estadu = $this->request->getPost('estadu');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Prezensa',
-            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id),
+            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id, $estadu),
             'data_hahu' => $data_hahu,
             'data_remata' => $data_remata,
             'data_print' => date('d-m-Y H:i')
@@ -152,8 +169,8 @@ class Relatoriu extends BaseController
         if ($type == 'pdf') {
             return $this->generatePDF('pages/administrador/relatoriu/export/prezensa_pdf', $data, 'Relatoriu_Prezensa.pdf');
         } else {
-            return $this->generateCSV('Relatoriu_Prezensa.csv', ['NID', 'Naran Kompletu', 'Departamentu', 'Prezente', 'Tardi', 'Falta', 'Lisensa', 'Incomplete'], $data['prezensa'], function($row) {
-                return [$row['nid'], $row['naran_kompletu'], $row['naran_departamentu'], $row['total_prezente'], $row['total_tardi'], $row['total_falta'], $row['total_lisensa'], $row['total_incomplete']];
+            return $this->generateCSV('Relatoriu_Prezensa.csv', ['NID', 'Naran Kompletu', 'Diresaun', 'Prezente', 'Loron Sorin', 'Falta', 'Lisensa', 'Incomplete'], $data['prezensa'], function($row) {
+                return [$row['nid'], $row['naran_kompletu'], $row['naran_diresaun'], $row['total_prezente'], $row['total_loron_sorin'], $row['total_falta'], $row['total_lisensa'], $row['total_incomplete']];
             });
         }
     }
@@ -186,11 +203,12 @@ class Relatoriu extends BaseController
         $data_hahu = $this->request->getPost('data_hahu');
         $data_remata = $this->request->getPost('data_remata');
         $estadu = $this->request->getPost('estadu');
+        $tipu_lisensa = $this->request->getPost('tipu_lisensa');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Lisensa',
-            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu),
+            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu, $tipu_lisensa),
             'data_hahu' => $data_hahu,
             'data_remata' => $data_remata,
             'data_print' => date('d-m-Y H:i')
@@ -210,11 +228,12 @@ class Relatoriu extends BaseController
         $fulan = $this->request->getPost('fulan');
         $tinan = $this->request->getPost('tinan');
         $estadu = $this->request->getPost('estadu');
+        $tipu_sansaun_id = $this->request->getPost('tipu_sansaun_id');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Sansaun',
-            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu),
+            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu, $tipu_sansaun_id),
             'fulan' => $fulan,
             'tinan' => $tinan,
             'data_print' => date('d-m-Y H:i')

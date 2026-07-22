@@ -26,9 +26,9 @@
                 <th>No</th>
                 <th>NID</th>
                 <th>Naran Kompletu</th>
-                <th>Departamentu</th>
+                <th>Diresaun</th>
                 <th>Prezente</th>
-                <th>Tardi</th>
+                <th>Loron Sorin</th>
                 <th>Falta</th>
                 <th>Lisensa</th>
                 <th>Incomplete</th>
@@ -40,9 +40,9 @@
                 <td><?= $no++ ?></td>
                 <td><?= $p['nid'] ?></td>
                 <td style="text-align: left;"><?= $p['naran_kompletu'] ?></td>
-                <td><?= $p['naran_departamentu'] ?></td>
+                <td><?= $p['naran_diresaun'] ?></td>
                 <td><?= $p['total_prezente'] ?></td>
-                <td><?= $p['total_tardi'] ?></td>
+                <td><?= $p['total_loron_sorin'] ?></td>
                 <td><?= $p['total_falta'] ?></td>
                 <td><?= $p['total_lisensa'] ?></td>
                 <td><?= $p['total_incomplete'] ?></td>

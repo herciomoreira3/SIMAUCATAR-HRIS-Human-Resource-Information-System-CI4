@@ -51,6 +51,14 @@ $routes->group('administrador', static function ($routes) {
     $routes->post('departamentu', 'Administrador::createDepartamentu');
     $routes->post('departamentu/update/(:num)', 'Administrador::updateDepartamentu/$1');
     $routes->delete('departamentu/delete/(:num)', 'Administrador::deleteDepartamentu/$1');
+    $routes->get('diresaun', 'Administrador::diresaun');
+    $routes->post('diresaun', 'Administrador::createDiresaun');
+    $routes->post('diresaun/update/(:num)', 'Administrador::updateDiresaun/$1');
+    $routes->delete('diresaun/delete/(:num)', 'Administrador::deleteDiresaun/$1');
+    $routes->get('grau', 'Administrador::grau');
+    $routes->post('grau', 'Administrador::createGrau');
+    $routes->post('grau/update/(:num)', 'Administrador::updateGrau/$1');
+    $routes->delete('grau/delete/(:num)', 'Administrador::deleteGrau/$1');
     $routes->get('pozisaun', 'Administrador::pozisaun');
     $routes->post('pozisaun', 'Administrador::createPozisaun');
     $routes->post('pozisaun/update/(:num)', 'Administrador::updatePozisaun/$1');
@@ -78,6 +86,10 @@ $routes->group('administrador', static function ($routes) {
     $routes->post('lisensa/balansu/generate', 'Administrador::generateLeaveBalance');
     $routes->post('lisensa/balansu/update/(:num)', 'Administrador::updateLeaveBalance/$1');
     $routes->post('lisensa/aprova/(:num)', 'Administrador::aprovaLisensa/$1');
+    $routes->post('lisensa/kria', 'Administrador::adminCreateLisensa');
+    $routes->post('lisensa/tipu', 'Administrador::createTipuLisensa');
+    $routes->post('lisensa/tipu/update/(:num)', 'Administrador::updateTipuLisensa/$1');
+    $routes->delete('lisensa/tipu/delete/(:num)', 'Administrador::deleteTipuLisensa/$1');
     $routes->get('salariu', 'Administrador::salariu');
     $routes->get('salariu/status', 'Administrador::getPaymentStatus');
     $routes->post('salariu/prosesa', 'Administrador::prosesaSalariu');
@@ -131,6 +143,10 @@ $routes->group('funsionariu', static function ($routes) {
     $routes->get('prezensa', 'Funsionariu::prezensa');
     $routes->post('prezensa/tama', 'Funsionariu::clockIn');
     $routes->post('prezensa/sai', 'Funsionariu::clockOut');
+    $routes->post('prezensa/tama_dader', 'Funsionariu::tamaDader');
+    $routes->post('prezensa/sai_dader', 'Funsionariu::saiDader');
+    $routes->post('prezensa/tama_lokraik', 'Funsionariu::tamaLokraik');
+    $routes->post('prezensa/sai_lokraik', 'Funsionariu::saiLokraik');
     $routes->get('perfil', 'Funsionariu::perfil');
     $routes->post('perfil/foto', 'Funsionariu::updateFoto');
     $routes->post('perfil/password', 'Funsionariu::updatePassword');

@@ -20,64 +20,98 @@
     <div class="col-md-5">
         <div class="card h-100">
             <div class="card-header">
-                <h5 class="card-title mb-0">Clock In / Clock Out</h5>
+                <h5 class="card-title mb-0">Absénsia Loron Ohin</h5>
             </div>
             <div class="card-body text-center">
-                <p class="mb-2">Data Ohin: <strong><?= date('d-m-Y') ?></strong></p>
-                <p class="mb-4">Oras Agora: <strong id="realtime-clock"><?= date('H:i:s') ?></strong></p>
-                
-                <?php 
-                    $now = date('H:i:s');
-                    $hahu_tama = $settings['tama_hahu'] ?? '00:00:00';
-                    $remata_tama = $settings['tama_remata'] ?? '23:59:59';
-                    $hahu_sai = $settings['sai_hahu'] ?? '00:00:00';
-                    $remata_sai = $settings['sai_remata'] ?? '23:59:59';
+                <p class="mb-2">Data: <strong><?= date('d-m-Y') ?></strong></p>
+                <p class="mb-4">Oras: <strong id="realtime-clock"><?= date('H:i:s') ?></strong></p>
 
-                    $tama_active = (strtotime($now) >= strtotime($hahu_tama) && strtotime($now) <= strtotime($remata_tama));
-                    $sai_active = (strtotime($now) >= strtotime($hahu_sai) && strtotime($now) <= strtotime($remata_sai));
-                ?>
-
-                <div class="d-grid gap-2">
-                    <?php if (!$prezensa_ohin): ?>
-                        <div class="alert alert-warning small">
-                            Horáriu Tama: <?= date('H:i', strtotime($hahu_tama)) ?> - <?= date('H:i', strtotime($remata_tama)) ?>
-                        </div>
-                        <form action="<?= base_url('funsionariu/prezensa/tama') ?>" method="post">
-                    <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-primary btn-lg w-100 py-4" <?= !$tama_active ? 'disabled' : '' ?>>
-                                <i class="align-middle me-2" data-feather="log-in"></i> TAMA (Clock In)
+                <!-- Dader Section -->
+                <div class="mb-4">
+                    <h6 class="text-center"><strong>Sesion Dader</strong></h6>
+                    <div class="d-grid gap-2 mt-2">
+                        <form action="<?= base_url('funsionariu/prezensa/tama_dader') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <?php
+                            $tamaDaderActive = (isset($settings['tama_manual_dader']) && $settings['tama_manual_dader'] == 1) ||
+                                (strtotime(date('H:i:s')) >= strtotime($settings['tama_hahu_dader']) && strtotime(date('H:i:s')) <= strtotime($settings['tama_remata_dader']));
+                            $hasTamaDader = $prezensa_ohin && !empty($prezensa_ohin['oras_tama_dader']);
+                            ?>
+                            <button type="submit" class="btn btn-primary btn-lg w-100"
+                                    <?= (!$tamaDaderActive || $hasTamaDader) ? 'disabled' : '' ?>>
+                                <i class="align-middle me-2" data-feather="log-in"></i> Tama Dader
+                                <?php if ($hasTamaDader): ?> (<?= $prezensa_ohin['oras_tama_dader'] ?>) <?php endif; ?>
                             </button>
                         </form>
-                        <?php if (!$tama_active): ?>
-                            <p class="text-danger small mt-2">Butaun Tama sei deit ativa iha oras ne'ebé konese.</p>
-                        <?php endif; ?>
-
-                    <?php elseif ($prezensa_ohin['oras_tama'] && empty($prezensa_ohin['oras_sai'])): ?>
-                        <div class="alert alert-success">
-                            Ita tama ona iha oras: <strong><?= $prezensa_ohin['oras_tama'] ?></strong>
-                        </div>
-                        <div class="alert alert-warning small">
-                            Horáriu Sai: <?= date('H:i', strtotime($hahu_sai)) ?> - <?= date('H:i', strtotime($remata_sai)) ?>
-                        </div>
-                        <form action="<?= base_url('funsionariu/prezensa/sai') ?>" method="post">
-                    <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-danger btn-lg w-100 py-4" <?= !$sai_active ? 'disabled' : '' ?>>
-                                <i class="align-middle me-2" data-feather="log-out"></i> SAI (Clock Out)
+                        <form action="<?= base_url('funsionariu/prezensa/sai_dader') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <?php
+                            $saiDaderActive = (isset($settings['sai_manual_dader']) && $settings['sai_manual_dader'] == 1) ||
+                                (strtotime(date('H:i:s')) >= strtotime($settings['sai_hahu_dader']) && strtotime(date('H:i:s')) <= strtotime($settings['sai_remata_dader']));
+                            $hasSaiDader = $prezensa_ohin && !empty($prezensa_ohin['oras_sai_dader']);
+                            ?>
+                            <button type="submit" class="btn btn-danger btn-lg w-100"
+                                    <?= (!$saiDaderActive || $hasSaiDader) ? 'disabled' : '' ?>>
+                                <i class="align-middle me-2" data-feather="log-out"></i> Sai Dader
+                                <?php if ($hasSaiDader): ?> (<?= $prezensa_ohin['oras_sai_dader'] ?>) <?php endif; ?>
                             </button>
                         </form>
-                        <?php if (!$sai_active): ?>
-                            <p class="text-danger small mt-2">Butaun Sai sei deit ativa iha oras ne'ebé konese.</p>
-                        <?php endif; ?>
-
-                    <?php else: ?>
-                        <div class="alert alert-info py-4">
-                            <i class="align-middle me-2" data-feather="check-circle"></i>
-                            Ita finaliza ona prezensa ba loron ohin. <br>
-                            Tama: <strong><?= $prezensa_ohin['oras_tama'] ?></strong> | 
-                            Sai: <strong><?= $prezensa_ohin['oras_sai'] ?></strong>
-                        </div>
-                    <?php endif; ?>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        Tama: <?= date('H:i', strtotime($settings['tama_hahu_dader'])) ?> - <?= date('H:i', strtotime($settings['tama_remata_dader'])) ?><br>
+                        Sai: <?= date('H:i', strtotime($settings['sai_hahu_dader'])) ?> - <?= date('H:i', strtotime($settings['sai_remata_dader'])) ?>
+                    </div>
                 </div>
+
+                <!-- Lokraik Section -->
+                <div class="mb-4">
+                    <h6 class="text-center"><strong>Sesion Lokraik</strong></h6>
+                    <div class="d-grid gap-2 mt-2">
+                        <form action="<?= base_url('funsionariu/prezensa/tama_lokraik') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <?php
+                            $tamaLokraikActive = (isset($settings['tama_manual_lokraik']) && $settings['tama_manual_lokraik'] == 1) ||
+                                (strtotime(date('H:i:s')) >= strtotime($settings['tama_hahu_lokraik']) && strtotime(date('H:i:s')) <= strtotime($settings['tama_remata_lokraik']));
+                            $hasTamaLokraik = $prezensa_ohin && !empty($prezensa_ohin['oras_tama_lokraik']);
+                            ?>
+                            <button type="submit" class="btn btn-primary btn-lg w-100"
+                                    <?= (!$tamaLokraikActive || $hasTamaLokraik) ? 'disabled' : '' ?>>
+                                <i class="align-middle me-2" data-feather="log-in"></i> Tama Lokraik
+                                <?php if ($hasTamaLokraik): ?> (<?= $prezensa_ohin['oras_tama_lokraik'] ?>) <?php endif; ?>
+                            </button>
+                        </form>
+                        <form action="<?= base_url('funsionariu/prezensa/sai_lokraik') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <?php
+                            $saiLokraikActive = (isset($settings['sai_manual_lokraik']) && $settings['sai_manual_lokraik'] == 1) ||
+                                (strtotime(date('H:i:s')) >= strtotime($settings['sai_hahu_lokraik']) && strtotime(date('H:i:s')) <= strtotime($settings['sai_remata_lokraik']));
+                            $hasSaiLokraik = $prezensa_ohin && !empty($prezensa_ohin['oras_sai_lokraik']);
+                            ?>
+                            <button type="submit" class="btn btn-danger btn-lg w-100"
+                                    <?= (!$saiLokraikActive || $hasSaiLokraik) ? 'disabled' : '' ?>>
+                                <i class="align-middle me-2" data-feather="log-out"></i> Sai Lokraik
+                                <?php if ($hasSaiLokraik): ?> (<?= $prezensa_ohin['oras_sai_lokraik'] ?>) <?php endif; ?>
+                            </button>
+                        </form>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        Tama: <?= date('H:i', strtotime($settings['tama_hahu_lokraik'])) ?> - <?= date('H:i', strtotime($settings['tama_remata_lokraik'])) ?><br>
+                        Sai: <?= date('H:i', strtotime($settings['sai_hahu_lokraik'])) ?> - <?= date('H:i', strtotime($settings['sai_remata_lokraik'])) ?>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <?php if ($prezensa_ohin): ?>
+                    <div class="alert alert-info mt-2">
+                        Estadu Prezensa Ohin:
+                        <span class="badge
+                            <?= $prezensa_ohin['estadu_prezensa'] == 'Prezente' ? 'bg-success' : ($prezensa_ohin['estadu_prezensa'] == 'Loron Sorin' ? 'bg-warning' :
+                            ($prezensa_ohin['estadu_prezensa'] == 'Falta' ? 'bg-danger' :
+                            ($prezensa_ohin['estadu_prezensa'] == 'Lisensa' ? 'bg-info' : 'bg-secondary'))) ?>">
+                            <?= $prezensa_ohin['estadu_prezensa'] ?>
+                        </span>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -92,8 +126,10 @@
                         <thead>
                             <tr>
                                 <th>Data</th>
-                                <th>Tama</th>
-                                <th>Sai</th>
+                                <th>Tama Dader</th>
+                                <th>Sai Dader</th>
+                                <th>Tama Lokraik</th>
+                                <th>Sai Lokraik</th>
                                 <th>Estadu</th>
                             </tr>
                         </thead>
@@ -101,38 +137,26 @@
                             <?php foreach($istoria_prezensa as $p): ?>
                             <tr>
                                 <td data-sort="<?= $p['data_prezensa'] ?>"><?= date('d-m-Y', strtotime($p['data_prezensa'])) ?></td>
-                                <td><?= $p['oras_tama'] ?? '-' ?></td>
-                                <td><?= $p['oras_sai'] ?? '-' ?></td>
+                                <td><?= $p['oras_tama_dader'] ?? '-' ?></td>
+                                <td><?= $p['oras_sai_dader'] ?? '-' ?></td>
+                                <td><?= $p['oras_tama_lokraik'] ?? '-' ?></td>
+                                <td><?= $p['oras_sai_lokraik'] ?? '-' ?></td>
                                 <td>
-                                    <?php 
+                                    <?php
                                         $badge = 'secondary';
-                                        $label = $p['estadu_prezensa'];
-                                        $now = date('H:i:s');
-                                        $ohin = date('Y-m-d');
-                                        $remata_sai = $settings['sai_remata'] ?? '23:59:59';
-                                        
-                                        if($p['estadu_prezensa'] == 'Prezente' || $p['estadu_prezensa'] == 'Tardi') {
-                                            if(empty($p['oras_sai'])) {
-                                                // Check if it's past the checkout window
-                                                if($p['data_prezensa'] < $ohin || ($p['data_prezensa'] == $ohin && strtotime($now) > strtotime($remata_sai))) {
-                                                    $badge = 'danger';
-                                                    $label = 'Falta (La Sai)';
-                                                } else {
-                                                    $badge = 'warning';
-                                                    $label = 'Prosesu Hela';
-                                                }
-                                            } else {
-                                                $badge = 'success';
-                                                $label = 'Prezente';
-                                            }
-                                        } elseif($p['estadu_prezensa'] == 'Falta') {
+                                        $status = $p['estadu_prezensa'];
+                                        if ($status == 'Prezente') {
+                                            $badge = 'success';
+                                        } elseif ($status == 'Loron Sorin') {
+                                            $badge = 'warning';
+                                        } elseif ($status == 'Falta') {
                                             $badge = 'danger';
-                                        } elseif($p['estadu_prezensa'] == 'Lisensa') {
+                                        } elseif ($status == 'Lisensa') {
                                             $badge = 'info';
                                         }
                                     ?>
                                     <span class="badge bg-<?= $badge ?>">
-                                        <?= $label ?>
+                                        <?= $status ?>
                                     </span>
                                 </td>
                             </tr>
@@ -148,8 +172,8 @@
 <script>
     function updateClock() {
         const now = new Date();
-        const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
-                           now.getMinutes().toString().padStart(2, '0') + ':' + 
+        const timeString = now.getHours().toString().padStart(2, '0') + ':' +
+                           now.getMinutes().toString().padStart(2, '0') + ':' +
                            now.getSeconds().toString().padStart(2, '0');
         document.getElementById('realtime-clock').textContent = timeString;
     }

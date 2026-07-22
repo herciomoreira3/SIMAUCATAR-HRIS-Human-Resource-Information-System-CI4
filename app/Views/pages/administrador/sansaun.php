@@ -121,7 +121,7 @@
                             <tr>
                                 <th>NID</th>
                                 <th>Naran Kompletu</th>
-                                <th>Departamentu</th>
+                                <th>Diresaun</th>
                                 <th>Pozisaun</th>
                                 <th>Asaun</th>
                             </tr>
@@ -131,7 +131,7 @@
                             <tr>
                                 <td><?= $f['nid'] ?></td>
                                 <td><?= $f['naran_kompletu'] ?></td>
-                                <td><?= $f['naran_departamentu'] ?></td>
+                                <td><?= $f['naran_diresaun'] ?></td>
                                 <td><?= $f['naran_pozisaun'] ?></td>
                                 <td>
                                     <button class="btn btn-primary btn-sm btn-fo-sansaun" 
@@ -225,7 +225,7 @@
                         <select name="new_pozisaun_id" class="form-select">
                             <option value="">- Hili Pozisaun Foun -</option>
                             <?php foreach($pozisaun as $p): ?>
-                            <option value="<?= $p['id'] ?>"><?= $p['naran_pozisaun'] ?> ($ <?= number_format($p['salariu_baziku'], 2) ?>)</option>
+                            <option value="<?= $p['id'] ?>"><?= $p['naran_pozisaun'] ?></option>
                             <?php endforeach; ?>
                         </select>
                         <small class="text-muted">Atenun: Pozisaun funsionáriu sei troka automatikamente wainhira submete.</small>

@@ -66,7 +66,7 @@
 - `data_prezensa` (Date, Required)
 - `oras_tama` (Time, Nullable) -> Clock in.
 - `oras_sai` (Time, Nullable) -> Clock out.
-- `estadu_prezensa` (Enum: 'Prezente', 'Tardi', 'Falta', 'Lisensa', Required)
+- `estadu_prezensa` (Enum: 'Prezente', 'Loron Sorin', 'Falta', 'Lisensa', Required)
 - `foto_tama` (Varchar 255, Nullable)
 - `kordenada` (Varchar 100, Nullable)
 - `created_at`, `updated_at`

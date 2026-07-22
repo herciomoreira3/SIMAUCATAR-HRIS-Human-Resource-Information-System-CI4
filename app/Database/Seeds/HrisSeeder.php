@@ -79,8 +79,8 @@ class HrisSeeder extends Seeder
             ],
             [
                 'menu_category' => $catMaster,
-                'title'         => 'Departamentu',
-                'url'           => 'administrador/departamentu',
+                'title'         => 'Diresaun',
+                'url'           => 'administrador/diresaun',
                 'icon'          => 'layers',
                 'parent'        => 0
             ],

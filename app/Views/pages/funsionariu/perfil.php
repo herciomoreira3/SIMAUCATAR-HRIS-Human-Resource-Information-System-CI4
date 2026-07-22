@@ -28,9 +28,9 @@
             </div>
             <hr class="my-0" />
             <div class="card-body">
-                <h5 class="h6 card-title">Departamentu</h5>
+                <h5 class="h6 card-title">Diresaun</h5>
                 <ul class="list-unstyled mb-0">
-                    <li class="mb-1"><i class="align-middle me-1" data-feather="briefcase"></i> <?= $funsionariu['naran_departamentu'] ?></li>
+                    <li class="mb-1"><i class="align-middle me-1" data-feather="briefcase"></i> <?= $funsionariu['naran_diresaun'] ?></li>
                 </ul>
             </div>
         </div>

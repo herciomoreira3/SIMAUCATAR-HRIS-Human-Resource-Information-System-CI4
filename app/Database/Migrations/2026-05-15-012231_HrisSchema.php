@@ -81,6 +81,34 @@ class HrisSchema extends Migration
         $this->forge->addKey('id', true);
         $this->forge->createTable('departamentu');
 
+        // Tabela grau
+        $this->forge->addField([
+            'id' => [
+                'type'           => 'INT',
+                'constraint'     => 11,
+                'unsigned'       => true,
+                'auto_increment' => true,
+            ],
+            'naran_grau' => [
+                'type'       => 'VARCHAR',
+                'constraint' => '100',
+            ],
+            'salariu_baziku' => [
+                'type'       => 'DECIMAL',
+                'constraint' => '10,2',
+            ],
+            'created_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'updated_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+        ]);
+        $this->forge->addKey('id', true);
+        $this->forge->createTable('grau');
+
         // Tabela pozisaun
         $this->forge->addField([
             'id' => [
@@ -93,12 +121,15 @@ class HrisSchema extends Migration
                 'type'       => 'VARCHAR',
                 'constraint' => '100',
             ],
-            'salariu_baziku' => [
-                'type'       => 'DECIMAL',
-                'constraint' => '10,2',
+            'grau_id' => [
+                'type'       => 'INT',
+                'constraint' => 11,
+                'unsigned'   => true,
+                'null'       => true,
             ],
         ]);
         $this->forge->addKey('id', true);
+        $this->forge->addForeignKey('grau_id', 'grau', 'id', 'SET NULL', 'CASCADE');
         $this->forge->createTable('pozisaun');
 
         // Tabela kategoria

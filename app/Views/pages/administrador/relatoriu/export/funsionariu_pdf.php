@@ -25,9 +25,10 @@
                 <th>No</th>
                 <th>NID</th>
                 <th>Naran Kompletu</th>
-                <th>Departamentu</th>
+                <th>Diresaun</th>
                 <th>Pozisaun</th>
                 <th>Kategoria</th>
+                <th>Grau</th>
             </tr>
         </thead>
         <tbody>
@@ -36,9 +37,10 @@
                 <td><?= $no++ ?></td>
                 <td><?= $f['nid'] ?></td>
                 <td><?= $f['naran_kompletu'] ?></td>
-                <td><?= $f['naran_departamentu'] ?></td>
+                <td><?= $f['naran_diresaun'] ?></td>
                 <td><?= $f['naran_pozisaun'] ?></td>
                 <td><?= $f['naran_kategoria'] ?></td>
+                <td><?= $f['naran_grau'] ?? '-' ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

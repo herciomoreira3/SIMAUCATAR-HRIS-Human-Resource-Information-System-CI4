@@ -33,7 +33,7 @@
                             <tr>
                                 <th>NID</th>
                                 <th>Naran Kompletu</th>
-                                <th>Departamentu</th>
+                                <th>Diresaun</th>
                                 <th>Pozisaun</th>
                                 <th>Estadu</th>
                                 <th>Asaun</th>
@@ -44,7 +44,7 @@
                             <tr>
                                 <td><?= $f['nid'] ?></td>
                                 <td><?= $f['naran_kompletu'] ?></td>
-                                <td><?= $f['naran_departamentu'] ?></td>
+                                <td><?= $f['naran_diresaun'] ?></td>
                                 <td><?= $f['naran_pozisaun'] ?></td>
                                 <td>
                                     <span class="badge bg-<?= isset($f['estadu_kontu']) && $f['estadu_kontu'] == 'Ativu' ? 'success' : 'primary' ?>">
@@ -123,8 +123,9 @@
                             <tr><th>Hela Fatin</th><td>: <?= $f['hela_fatin'] ?></td></tr>
                             <tr><th>Estadu Sivil</th><td>: <?= $f['estadu_sivil'] ?></td></tr>
                             <tr><th>Nu. Telefone</th><td>: <?= $f['nu_telefone'] ?></td></tr>
-                            <tr><th>Departamentu</th><td>: <?= $f['naran_departamentu'] ?></td></tr>
+                            <tr><th>Diresaun</th><td>: <?= $f['naran_diresaun'] ?></td></tr>
                             <tr><th>Pozisaun</th><td>: <?= $f['naran_pozisaun'] ?></td></tr>
+                            <tr><th>Grau (Saláriu)</th><td>: <?= esc($f['naran_grau'] ?? 'Laiha') ?> ($<?= number_format($f['salariu_baziku'] ?? 0, 2) ?>)</td></tr>
                             <tr><th>Kategoria</th><td>: <?= $f['naran_kategoria'] ?></td></tr>
                             <tr><th>Data Hahu Servisu</th><td>: <?= !empty($f['data_hahu_servisu']) ? date('d-m-Y', strtotime($f['data_hahu_servisu'])) : '-' ?></td></tr>
                             <tr><th>Naran Utilizador</th><td>: <?= $f['naran_utilizador'] ?></td></tr>
@@ -220,15 +221,15 @@
                             <label class="form-label">Data Hahu Servisu</label>
                             <input type="date" name="data_hahu_servisu" class="form-control" value="<?= $f['data_hahu_servisu'] ?>" required>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Departamentu</label>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Diresaun</label>
                             <select name="departamentu_id" class="form-select" required>
-                                <?php foreach($departamentu as $d): ?>
-                                <option value="<?= $d['id'] ?>" <?= $f['departamentu_id'] == $d['id'] ? 'selected' : '' ?>><?= $d['naran_departamentu'] ?></option>
+                                <?php foreach($diresaun as $d): ?>
+                                <option value="<?= $d['id'] ?>" <?= $f['departamentu_id'] == $d['id'] ? 'selected' : '' ?>><?= $d['naran_diresaun'] ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label class="form-label">Pozisaun</label>
                             <select name="pozisaun_id" class="form-select" required>
                                 <?php foreach($pozisaun as $p): ?>
@@ -236,7 +237,16 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Grau (Saláriu)</label>
+                            <select name="grau_id" class="form-select" required>
+                                <option value="">-- Hili Grau --</option>
+                                <?php foreach($grau as $g): ?>
+                                <option value="<?= $g['id'] ?>" <?= $f['grau_id'] == $g['id'] ? 'selected' : '' ?>><?= esc($g['naran_grau']) ?> ($<?= number_format($g['salariu_baziku'], 2) ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
                             <label class="form-label">Kategoria</label>
                             <select name="kategoria_id" class="form-select" required>
                                 <?php foreach($kategoria as $k): ?>
@@ -335,15 +345,15 @@
                             <label class="form-label">Data Hahu Servisu</label>
                             <input type="date" name="data_hahu_servisu" class="form-control" required>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Departamentu</label>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Diresaun</label>
                             <select name="departamentu_id" class="form-select" required>
-                                <?php foreach($departamentu as $d): ?>
-                                <option value="<?= $d['id'] ?>"><?= $d['naran_departamentu'] ?></option>
+                                <?php foreach($diresaun as $d): ?>
+                                <option value="<?= $d['id'] ?>"><?= $d['naran_diresaun'] ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label class="form-label">Pozisaun</label>
                             <select name="pozisaun_id" class="form-select" required>
                                 <?php foreach($pozisaun as $p): ?>
@@ -351,7 +361,16 @@
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Grau (Saláriu)</label>
+                            <select name="grau_id" class="form-select" required>
+                                <option value="">-- Hili Grau --</option>
+                                <?php foreach($grau as $g): ?>
+                                <option value="<?= $g['id'] ?>"><?= esc($g['naran_grau']) ?> ($<?= number_format($g['salariu_baziku'], 2) ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
                             <label class="form-label">Kategoria</label>
                             <select name="kategoria_id" class="form-select" required>
                                 <?php foreach($kategoria as $k): ?>

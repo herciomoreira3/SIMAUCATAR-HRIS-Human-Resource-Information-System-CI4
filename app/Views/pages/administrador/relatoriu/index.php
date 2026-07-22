@@ -33,7 +33,7 @@
                 <h5 class="card-title mb-0">Deskrisaun Modulu</h5>
             </div>
             <div class="card-body">
-                <p>Uza menu iha sorin karuk atu hili relatóriu ne'ebé ita hakarak haree. Ita bele filtra dadus bazeia ba tempu, departamentu, ka estadu husi kada dadus.</p>
+                <p>Uza menu iha sorin karuk atu hili relatóriu ne'ebé ita hakarak haree. Ita bele filtra dadus bazeia ba tempu, diresaun, ka estadu husi kada dadus.</p>
                 <p>Relatóriu hotu bele esporta ba formatu <strong>PDF</strong> ba imprime no <strong>Excel</strong> ba prosesamentu dadus lanjut.</p>
                 
                 <div class="alert alert-info" role="alert">
