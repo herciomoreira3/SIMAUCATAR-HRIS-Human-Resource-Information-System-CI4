@@ -40,6 +40,11 @@ $routes->group('menu-management', static function ($routes) {
 });
 $routes->get('menu','Menu::index');
 
+// --- CRON JOB ROUTES (dipanggil oleh cronjob.org) ---
+// Gunakan token autentikasi via query ?token=YOUR_CRON_SECRET_TOKEN
+$routes->get('cron/mark-absent', 'CronJob::markAbsent');
+$routes->get('cron/ping', 'CronJob::ping');
+
 // --- HRIS ROUTES ---
 
 // Administrador
