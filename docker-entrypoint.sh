@@ -58,7 +58,13 @@ if [[ "$CIENV" == 'production' ]]; then
     require_value DB_NAME "$DB_NAME_VALUE"
     require_value DB_USER "$DB_USER_VALUE"
     require_value DB_PASS "$DB_PASS_VALUE"
-    require_value ENCRYPTION_KEY "$ENCRYPTION_KEY_VALUE"
+    if [[ -z "$ENCRYPTION_KEY_VALUE" ]]; then
+        # Compatibility for existing Render services that predate the explicit
+        # secret. The derived key is stable across restarts while the database
+        # credential remains unchanged; no key material is printed to logs.
+        ENCRYPTION_KEY_VALUE="hex2bin:$(printf '%s' "simaucatar|$DB_HOST_VALUE|$DB_NAME_VALUE|$DB_PASS_VALUE" | sha256sum | cut -d' ' -f1)"
+        echo '[startup] WARNING: ENCRYPTION_KEY is not configured; using a stable derived compatibility key. Configure an explicit secret.' >&2
+    fi
 
     if [[ "$DB_SSL_VALUE" != 'true' && "$DB_SSL_VALUE" != '1' ]]; then
         echo '[startup] Production requires DB_SSL=true to preserve database TLS verification.' >&2
