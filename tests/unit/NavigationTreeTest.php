@@ -27,7 +27,7 @@ final class NavigationTreeTest extends CIUnitTestCase
 
     public function testInvalidationBumpsTheSharedNavigationVersion(): void
     {
-        $cache = new InMemoryNavigationCache(['simaucatar:navigation:v2:version' => 4]);
+        $cache = new InMemoryNavigationCache(['simaucatar:navigation:v3:version' => 4]);
         $reflection = new ReflectionClass(NavigationService::class);
         $service = $reflection->newInstanceWithoutConstructor();
         $cacheProperty = $reflection->getProperty('cache');
@@ -35,8 +35,8 @@ final class NavigationTreeTest extends CIUnitTestCase
 
         $service->invalidate();
 
-        $this->assertSame(5, $cache->values['simaucatar:navigation:v2:version']);
-        $this->assertSame(300, $cache->ttls['simaucatar:navigation:v2:version']);
+        $this->assertSame(5, $cache->values['simaucatar:navigation:v3:version']);
+        $this->assertSame(300, $cache->ttls['simaucatar:navigation:v3:version']);
     }
 }
 
