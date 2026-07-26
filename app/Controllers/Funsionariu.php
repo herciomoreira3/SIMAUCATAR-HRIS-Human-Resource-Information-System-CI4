@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Repositories\DashboardRepository;
+use DateTimeImmutable;
+use DateTimeZone;
 
 class Funsionariu extends BaseController
 {
@@ -24,37 +27,22 @@ class Funsionariu extends BaseController
             return redirect()->to(base_url('blocked'));
         }
 
-        $funsionariu_id = $funsionariu['id'];
-        $prezente = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Prezente')->countAllResults();
-        $loronSorin = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
-        $falta = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Falta')->countAllResults();
-        $lisensa = $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('estadu_prezensa', 'Lisensa')->countAllResults();
-
-        $trendLabels = [];
-        $trendPrezente = [];
-        $trendLoronSorin = [];
-        $trendFalta = [];
-        $trendLisensa = [];
-        for ($i = 14; $i >= 0; $i--) {
-            $date = date('Y-m-d', strtotime("-$i days"));
-            $trendLabels[] = date('d M', strtotime($date));
-            $trendPrezente[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Prezente')->countAllResults();
-            $trendLoronSorin[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
-            $trendFalta[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
-            $trendLisensa[] = (int) $this->db->table('prezensa')->where('funsionariu_id', $funsionariu_id)->where('data_prezensa', $date)->where('estadu_prezensa', 'Lisensa')->countAllResults();
-        }
+        $funsionariu_id = (int) $funsionariu['id'];
+        $repository = new DashboardRepository($this->db);
+        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Dili'));
+        $trend = $repository->getEmployeeAttendanceTrend($funsionariu_id, $now->setTime(0, 0)->modify('-14 days'), $now->setTime(0, 0));
+        $totals = $repository->getEmployeeAttendanceTotals($funsionariu_id);
 
         $data = array_merge($this->data, [
             'title' => 'Painel Funsionariu',
-            'avizu' => $this->ApplicationModel->getAvizu(),
-            'prezensa_fulan' => count($this->ApplicationModel->getPrezensa(funsionariu_id: $funsionariu_id)),
+            'avizu' => $repository->getLatestAnnouncements(3, $now),
             'funsionariu' => $funsionariu,
-            'chart_data' => json_encode([(int) $prezente, (int) $loronSorin, (int) $falta, (int) $lisensa]),
-            'trend_labels' => json_encode($trendLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
-            'trend_prezente' => json_encode($trendPrezente),
-            'trend_loron_sorin' => json_encode($trendLoronSorin),
-            'trend_falta' => json_encode($trendFalta),
-            'trend_lisensa' => json_encode($trendLisensa),
+            'chart_data' => json_encode(array_values($totals)),
+            'trend_labels' => json_encode($trend['labels'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
+            'trend_prezente' => json_encode($trend['series']['Prezente']),
+            'trend_loron_sorin' => json_encode($trend['series']['Loron Sorin']),
+            'trend_falta' => json_encode($trend['series']['Falta']),
+            'trend_lisensa' => json_encode($trend['series']['Lisensa']),
         ]);
 
         return view('pages/funsionariu/dashboard', $data);

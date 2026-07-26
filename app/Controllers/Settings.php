@@ -3,10 +3,16 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Repositories\NavigationRepository;
+use App\Services\NavigationService;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class Settings extends BaseController
 {
+    private function invalidateNavigation(): void
+    {
+        (new NavigationService(new NavigationRepository($this->db), cache()))->invalidate();
+    }
     public function createRole()
     {
         $createRole = $this->ApplicationModel->createRole($this->request->getPost(null, FILTER_UNSAFE_RAW));
@@ -38,6 +44,7 @@ class Settings extends BaseController
         }
         $deleteRole = $this->ApplicationModel->deleteRole($roleID);
         if ($deleteRole) {
+            $this->invalidateNavigation();
             session()->setFlashdata('notif_success', '<b>Papel hamos ona.</b> ');
             return redirect()->to(base_url('users'));
         } else {
@@ -125,6 +132,7 @@ class Settings extends BaseController
         } else {
             $this->ApplicationModel->insertMenuCategoryPermission($this->request->getPost(null, FILTER_UNSAFE_RAW));
         }
+        $this->invalidateNavigation();
     }
 
     public function changeMenuPermission()
@@ -135,6 +143,7 @@ class Settings extends BaseController
         } else {
             $this->ApplicationModel->insertMenuPermission($this->request->getPost(null, FILTER_UNSAFE_RAW));
         }
+        $this->invalidateNavigation();
     }
 
     public function changeSubMenuPermission()
@@ -145,6 +154,7 @@ class Settings extends BaseController
         } else {
             $this->ApplicationModel->insertSubmenuPermission($this->request->getPost(null, FILTER_UNSAFE_RAW));
         }
+        $this->invalidateNavigation();
     }
 
     public function menuManagement()
@@ -154,7 +164,7 @@ class Settings extends BaseController
             'MenuCategories'    => $this->ApplicationModel->getMenuCategory(),
             'Menus'             => $this->ApplicationModel->getMenu(),
             'Submenus'          => $this->ApplicationModel->getSubmenu(),
-            'validation'        => $this->validation
+            'validation'        => service('validation')
         ]);
         return view('pages/settings/menu_management', $data);
     }
@@ -174,6 +184,7 @@ class Settings extends BaseController
         }
         $createMenuCategory = $this->ApplicationModel->createMenuCategory($this->request->getPost(null));
         if ($createMenuCategory) {
+            $this->invalidateNavigation();
             session()->setFlashdata('notif_success', '<b>Kategoria menu kria ona.</b>');
             return redirect()->to(base_url('menu-management'));
         } else {
@@ -196,6 +207,7 @@ class Settings extends BaseController
         }
         $updateMenuCategory = $this->ApplicationModel->updateMenuCategory($this->request->getPost(null));
         if ($updateMenuCategory) {
+            $this->invalidateNavigation();
             session()->setFlashdata('notif_success', '<b>Kategoria menu atualiza ona.</b> ');
             return redirect()->to(base_url('menu-management'));
         } else {
@@ -239,6 +251,7 @@ class Settings extends BaseController
 
         $createMenu = $this->ApplicationModel->createMenu($this->request->getPost(null));
         if ($createMenu) {
+            $this->invalidateNavigation();
             session()->setFlashdata('notif_success', '<b>Metadata menu kria ona.</b> Aumenta route/controller liu husi code no migration.');
             return redirect()->to(base_url('menu-management'));
         }
@@ -271,11 +284,12 @@ class Settings extends BaseController
                 ]
             ],
         ])) {
-            session()->setFlashdata('notif_error', $this->validation->getErrors());
+            session()->setFlashdata('notif_error', service('validation')->getErrors());
             return redirect()->to('menu-management')->withInput();
         }
         $createSubMenu = $this->ApplicationModel->createSubMenu($this->request->getPost(null));
         if ($createSubMenu) {
+            $this->invalidateNavigation();
             session()->setFlashdata('notif_success', '<b>Submenu kria ona.</b> ');
             return redirect()->to(base_url('menu-management'));
         } else {

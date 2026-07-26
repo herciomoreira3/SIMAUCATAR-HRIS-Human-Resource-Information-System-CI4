@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\ApplicationModel;
+use App\Repositories\DashboardRepository;
+use App\Repositories\NavigationRepository;
+use App\Services\NavigationService;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
@@ -55,26 +58,39 @@ abstract class BaseController extends Controller
 
         $this->session          = service('session');
         $this->segment          = service('uri');
-        $this->validation       = \Config\Services::validation();
-        $this->encrypter        = \Config\Services::encrypter();
         $this->ApplicationModel = new ApplicationModel();
         $this->db               = \Config\Database::connect();
 
-        $user    = $this->ApplicationModel->getUser(username: session()->get('username'));
         $segment = $this->segment->getSegment(1);
         if ($segment) {
             $subsegment = $this->segment->getSegment(2);
         } else {
             $subsegment = '';
         }
-        $role = session()->get('role');
+        $role = (int) session()->get('role');
+        $authenticated = (bool) session()->get('isLoggedIn') && (int) session()->get('userID') > 0;
+        $user = null;
+        $navigation = [];
+        $announcements = [];
+
+        if ($authenticated && $segment !== '' && $segment !== 'dashboard') {
+            $user = $this->ApplicationModel->getLayoutUser((int) session()->get('userID'));
+            if ($role > 0) {
+                $navigation = (new NavigationService(
+                    new NavigationRepository($this->db),
+                    cache()
+                ))->forRole($role);
+            }
+            $announcements = (new DashboardRepository($this->db))->getLatestAnnouncements(5, new \DateTimeImmutable('now', new \DateTimeZone('Asia/Dili')));
+        }
 
         $this->data = [
             'segment'        => $segment,
             'subsegment'     => $subsegment,
             'user'           => $user,
-            'MenuCategory'   => $role ? $this->ApplicationModel->getAccessMenuCategory($role) : [],
-            'avizu_notif'    => $this->ApplicationModel->getAvizu(),
+            'navigation'     => $navigation,
+            'MenuCategory'   => [],
+            'avizu_notif'    => $announcements,
         ];
     }
 
@@ -151,10 +167,6 @@ abstract class BaseController extends Controller
 
     protected function logAudit(string $action, ?string $entityType = null, $entityId = null, ?array $oldValues = null, ?array $newValues = null): void
     {
-        if (!$this->db || !$this->db->tableExists('audit_logs')) {
-            return;
-        }
-
         $this->db->table('audit_logs')->insert([
             'actor_user_id' => session()->get('userID'),
             'actor_role'    => session()->get('role_name') ?? session()->get('role'),

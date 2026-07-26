@@ -108,21 +108,10 @@ class ApplicationModel extends Model
     {
         // Try old users table first, then utilizador
         if ($username) {
-            $userFields = $this->db->getFieldNames('users');
-            $select = 'users.*, users.id AS userID, user_role.id AS role_id, user_role.role_name AS role';
-            if (in_array('status', $userFields, true)) {
-                $select .= ', users.status AS status';
-            }
-
             $user = $this->db->table('users')
-                ->select($select)
+                ->select('users.*, users.id AS userID, user_role.id AS role_id, user_role.role_name AS role')
                 ->join('user_role', 'users.role = user_role.id')
                 ->where('users.username', $username);
-
-            if (in_array('email', $userFields, true)) {
-                $user->orWhere('users.email', $username);
-            }
-
             $user = $user->get()->getRowArray();
             if ($user) {
                 $user['_auth_table'] = 'users';
@@ -155,6 +144,15 @@ class ApplicationModel extends Model
                 ->join('user_role', 'users.role = user_role.id')
                 ->get()->getResultArray();
         }
+    }
+
+    public function getLayoutUser(int $userID): ?array
+    {
+        return $this->db->table('users')
+            ->select('users.id AS userID, users.fullname, users.username, user_role.id AS role_id, user_role.role_name AS role')
+            ->join('user_role', 'users.role = user_role.id')
+            ->where('users.id', $userID)
+            ->get()->getRowArray();
     }
 
     // --- HRIS NEW METHODS ---
@@ -404,13 +402,11 @@ class ApplicationModel extends Model
     public function getAvizu($id = false) {
         if ($id) return $this->db->table('avizu')->where('id', $id)->get()->getRowArray();
 
-        $builder = $this->db->table('avizu');
-        if ($this->db->fieldExists('data_remata', 'avizu')) {
-            $builder->groupStart()
+        $builder = $this->db->table('avizu')
+            ->groupStart()
                 ->where('data_remata', null)
                 ->orWhere('data_remata >', date('Y-m-d H:i:s'))
-                ->groupEnd();
-        }
+            ->groupEnd();
 
         return $builder->orderBy('data_publikasaun', 'DESC')->get()->getResultArray();
     }
@@ -434,7 +430,6 @@ class ApplicationModel extends Model
 
     public function getAttendanceSettings()
     {
-        $fields = $this->db->getFieldNames('attendance_settings');
         $check = $this->db->table('attendance_settings')->get()->getRowArray();
         
         $defaults = [
@@ -462,18 +457,7 @@ class ApplicationModel extends Model
             'updated_at' => date('Y-m-d H:i:s'),
         ];
         
-        if (!$check) {
-            $insertData = [];
-            foreach ($defaults as $key => $value) {
-                if (in_array($key, $fields)) {
-                    $insertData[$key] = $value;
-                }
-            }
-            $this->db->table('attendance_settings')->insert($insertData);
-            $check = $this->db->table('attendance_settings')->get()->getRowArray();
-        }
-        
-        // Merge with defaults to ensure all keys exist
+        // A GET must remain read-only. Seed the singleton during deployment instead.
         return array_merge($defaults, $check ?? []);
     }
 

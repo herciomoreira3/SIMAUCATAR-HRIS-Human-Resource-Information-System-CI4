@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Repositories\DashboardRepository;
+use DateTimeImmutable;
+use DateTimeZone;
 
 class Administrador extends BaseController
 {
@@ -62,41 +65,25 @@ class Administrador extends BaseController
 
     public function dashboard()
     {
-        // Chart 1: Attendance Trends (Last 15 days)
-        $labels = [];
-        $prezente = [];
-        $loronSorin = [];
-        $falta = [];
-        $lisensa = [];
-        for ($i = 14; $i >= 0; $i--) {
-            $date = date('Y-m-d', strtotime("-$i days"));
-            $labels[] = date('d M', strtotime($date));
-            $prezente[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Prezente')->countAllResults();
-            $loronSorin[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Loron Sorin')->countAllResults();
-            $falta[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Falta')->countAllResults();
-            $lisensa[] = (int) $this->db->table('prezensa')->where('data_prezensa', $date)->where('estadu_prezensa', 'Lisensa')->countAllResults();
-        }
-
-        // Chart 2: Diresaun Composition
-        $dept_comp = $this->db->table('funsionariu')
-            ->select('departamentu.naran_departamentu as naran_diresaun, COUNT(funsionariu.id) as total')
-            ->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')
-            ->groupBy('funsionariu.departamentu_id')
-            ->get()->getResultArray();
+        $repository = new DashboardRepository($this->db);
+        $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Dili'));
+        $start = $now->setTime(0, 0)->modify('-14 days');
+        $trend = $repository->getAdminAttendanceTrend($start, $now->setTime(0, 0));
+        $kpis = $repository->getAdminKpis($now);
 
         $data = array_merge($this->data, [
             'title' => 'Painel Administrador',
-            'total_funsionariu' => count($this->ApplicationModel->getFunsionariu()),
-            'total_prezensa_ohin' => count($this->ApplicationModel->getPrezensa(data: date('Y-m-d'))),
-            'pendente_lisensa' => count($this->ApplicationModel->getLisensa(estadu: 'Pendente')),
-            'avizu_ikus' => $this->ApplicationModel->getAvizu(),
-            'sansaun_ikus' => $this->ApplicationModel->getSansaun(),
-            'chart_labels' => json_encode($labels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
-            'chart_prezente' => json_encode($prezente),
-            'chart_loron_sorin' => json_encode($loronSorin),
-            'chart_falta' => json_encode($falta),
-            'chart_lisensa' => json_encode($lisensa),
-            'dept_comp' => json_encode($dept_comp, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
+            'total_funsionariu' => (int) ($kpis['total_funsionariu'] ?? 0),
+            'total_prezensa_ohin' => (int) ($kpis['total_prezensa_ohin'] ?? 0),
+            'pendente_lisensa' => (int) ($kpis['pendente_lisensa'] ?? 0),
+            'avizu_ikus' => $repository->getLatestAnnouncements(5, $now),
+            'sansaun_ikus' => $repository->getLatestSanctions(5),
+            'chart_labels' => json_encode($trend['labels'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
+            'chart_prezente' => json_encode($trend['series']['Prezente']),
+            'chart_loron_sorin' => json_encode($trend['series']['Loron Sorin']),
+            'chart_falta' => json_encode($trend['series']['Falta']),
+            'chart_lisensa' => json_encode($trend['series']['Lisensa']),
+            'dept_comp' => json_encode($repository->getDepartmentComposition(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
         ]);
         return view('pages/administrador/dashboard', $data);
     }

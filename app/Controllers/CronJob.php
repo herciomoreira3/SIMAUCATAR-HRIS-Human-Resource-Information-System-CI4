@@ -48,8 +48,8 @@ class CronJob extends Controller
             return false;
         }
 
-        $providedToken = $this->request->getGet('token')
-            ?? $this->request->getHeaderLine('X-Cron-Token');
+        $providedToken = $this->request->getHeaderLine('X-Cron-Token')
+            ?: $this->request->getGet('token'); // Legacy scheduler fallback.
 
         return hash_equals($expectedToken, (string) $providedToken);
     }
@@ -262,14 +262,10 @@ class CronJob extends Controller
                 ->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
         }
 
-        $settings = $this->model->getAttendanceSettings();
-
         return $this->response->setJSON([
             'status'               => 'ok',
             'server_time'          => date('Y-m-d H:i:s'),
-            'sai_remata_dader'     => $settings['sai_remata_dader']   ?? '13:00:00',
-            'sai_remata_lokraik'   => $settings['sai_remata_lokraik'] ?? '18:00:00',
-            'message'              => 'CronJob endpoint aktif dan siap.',
+            'message'              => 'CronJob endpoint aktif.',
         ]);
     }
 }

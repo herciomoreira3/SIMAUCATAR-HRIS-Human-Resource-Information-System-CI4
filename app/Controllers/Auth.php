@@ -35,10 +35,10 @@ class Auth extends BaseController
         }
 
         if (!$user || !password_verify($inputPassword, $user['password'])) {
-            if ($user && ($user['_auth_table'] ?? 'users') === 'users' && $this->db->fieldExists('failed_login_count', 'users')) {
+            if ($user && ($user['_auth_table'] ?? 'users') === 'users') {
                 $failedCount = (int) ($user['failed_login_count'] ?? 0) + 1;
                 $update = ['failed_login_count' => $failedCount];
-                if ($failedCount >= 5 && $this->db->fieldExists('locked_until', 'users')) {
+                if ($failedCount >= 5) {
                     $update['locked_until'] = date('Y-m-d H:i:s', strtotime('+15 minutes'));
                 }
                 $this->db->table('users')->where('id', $user['userID'])->update($update);
@@ -75,7 +75,7 @@ class Auth extends BaseController
 
         session()->set($sessionData);
 
-        if (($user['_auth_table'] ?? 'users') === 'users' && $this->db->fieldExists('last_login_at', 'users')) {
+        if (($user['_auth_table'] ?? 'users') === 'users') {
             $this->db->table('users')->where('id', $user['userID'])->update([
                 'failed_login_count' => 0,
                 'locked_until'       => null,
