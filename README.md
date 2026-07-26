@@ -303,6 +303,19 @@ Test automatizadu iha repo ne'e haree ba:
 - Dashboard uza gráfiku lokál no dadus tendénsia.
 - Source aplikasaun la iha marker mojibake prinsipál.
 
+## Deploy ba Render
+
+`render.yaml` define service Docker and health check `/health/live`. Before applying
+the Blueprint, set the `sync: false` variables in the Render dashboard; they are
+intentionally not stored in this repository. The health route must be deployed with
+the application before enabling the check.
+
+Run `powershell -ExecutionPolicy Bypass -File scripts/build-assets.ps1` after changing
+a legacy frontend source. It emits content-addressed files in `/assets/build/` and
+updates `public/assets/manifest.json`; that script has no Node dependency or lockfile
+requirement. Only these hashed build files may receive `Cache-Control: public,
+max-age=31536000, immutable`; never apply that policy to HTML, uploads, or exports.
+
 ## Seguransa
 
 - Password uza `password_hash`.

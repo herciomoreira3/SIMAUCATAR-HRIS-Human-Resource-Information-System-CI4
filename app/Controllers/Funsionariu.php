@@ -4,11 +4,17 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Repositories\DashboardRepository;
+use App\Services\Storage\StorageManager;
 use DateTimeImmutable;
 use DateTimeZone;
 
 class Funsionariu extends BaseController
 {
+    private function storage(): StorageManager
+    {
+        return StorageManager::fromConfig();
+    }
+
     private function currentFunsionariu(): ?array
     {
         $funsionariu = $this->ApplicationModel->getFunsionariuByUserId(session()->get('userID'));
@@ -250,13 +256,10 @@ class Funsionariu extends BaseController
 
         $file = $this->request->getFile('foto_perfil');
         $newName = $file->getRandomName();
-        $file->move(FCPATH . 'uploads/perfil', $newName);
+        $this->storage()->putUpload('perfil', $newName, $file);
 
         if (!empty($funsionariu['foto_perfil'])) {
-            $oldPath = FCPATH . 'uploads/perfil/' . $funsionariu['foto_perfil'];
-            if (is_file($oldPath)) {
-                @unlink($oldPath);
-            }
+            $this->storage()->delete('perfil', (string) $funsionariu['foto_perfil']);
         }
 
         $this->ApplicationModel->updateData('funsionariu', [
@@ -439,7 +442,7 @@ class Funsionariu extends BaseController
         $file = $this->request->getFile('dokumentu_suporta');
         if ($file && $file->isValid() && !$file->hasMoved()) {
             $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/lisensa', $newName);
+            $this->storage()->putUpload('lisensa', $newName, $file);
             $data['dokumentu_suporta'] = $newName;
         }
 

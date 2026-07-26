@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: simaucatar
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health/live
+    autoDeploy: true
+    envVars:
+      - key: CI_ENVIRONMENT
+        value: production
+      - key: APP_BASE_URL
+        sync: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: FORCE_HTTPS
+        value: "true"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: STORAGE_DRIVER
+        value: "s3"
+      - key: STORAGE_S3_ENDPOINT
+        sync: false
+      - key: STORAGE_S3_BUCKET
+        sync: false
+      - key: STORAGE_S3_REGION
+        sync: false
+      - key: STORAGE_S3_ACCESS_KEY
+        sync: false
+      - key: STORAGE_S3_SECRET_KEY
+        sync: false
+      - key: STORAGE_S3_PREFIX
+        sync: false
+      - key: STORAGE_S3_PATH_STYLE
+        value: "true"
+      - key: STORAGE_S3_TIMEOUT_SECONDS
+        value: "15"

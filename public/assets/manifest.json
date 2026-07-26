@@ -1,0 +1,18 @@
+{
+    "version":  1,
+    "immutable":  true,
+    "assets":  {
+                   "core-css":  {
+                                    "path":  "assets/build/core-css.5b9d05c01dc7e8e7.css",
+                                    "sha256":  "5b9d05c01dc7e8e7d511fa301996e818aab693cf5183e42963f4568f77b8825d"
+                                },
+                   "core-js":  {
+                                   "path":  "assets/build/core-js.3b65f1d6d37091b5.js",
+                                   "sha256":  "3b65f1d6d37091b56f69daf0ad7003d57b345ba87f94e07e12bd6641bb5d5614"
+                               },
+                   "custom-css":  {
+                                      "path":  "assets/build/custom-css.0633ff00c7efd352.css",
+                                      "sha256":  "0633ff00c7efd352eace758a1b278c0c83c42ad27ddd5a0fa290b5d33fdaedd2"
+                                  }
+               }
+}

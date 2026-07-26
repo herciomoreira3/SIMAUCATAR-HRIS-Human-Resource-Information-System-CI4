@@ -81,7 +81,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover datatable">
+                    <table class="table table-striped table-hover">
                         <thead>
                             <tr>
                                 <th>NID</th>
@@ -116,6 +116,7 @@
                         </tbody>
                     </table>
                 </div>
+                <?= view('pages/administrador/relatoriu/_pagination', ['pagination' => $pagination]) ?>
             </div>
         </div>
     </div>

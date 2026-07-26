@@ -4,11 +4,17 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Repositories\DashboardRepository;
+use App\Services\Storage\StorageManager;
 use DateTimeImmutable;
 use DateTimeZone;
 
 class Administrador extends BaseController
 {
+    private function storage(): StorageManager
+    {
+        return StorageManager::fromConfig();
+    }
+
     private function postText(string $key): string
     {
         return trim((string) $this->request->getPost($key));
@@ -1547,13 +1553,8 @@ class Administrador extends BaseController
         }
 
         $file = $this->request->getFile('documentu');
-        $uploadDir = FCPATH . 'uploads/documentu';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0775, true);
-        }
-
         $storedName = $file->getRandomName();
-        $file->move($uploadDir, $storedName);
+        $this->storage()->putUpload('documentu', $storedName, $file);
 
         $data = [
             'funsionariu_id' => (int) $funsionariu['id'],
@@ -1599,29 +1600,61 @@ class Administrador extends BaseController
 
     public function audit()
     {
+        $pagination = $this->auditPagination();
+        $total = (int) $this->db->table('audit_logs')->countAllResults();
+        $pagination['total'] = $total;
+        $pagination['pages'] = max(1, (int) ceil($total / $pagination['per_page']));
+        $pagination['page'] = min($pagination['page'], $pagination['pages']);
+        $pagination['offset'] = ($pagination['page'] - 1) * $pagination['per_page'];
+
         $logs = $this->db->table('audit_logs')
-            ->select('audit_logs.*, users.username, users.fullname')
+            ->select('audit_logs.id, audit_logs.created_at, audit_logs.actor_role, audit_logs.action, audit_logs.entity_type, audit_logs.entity_id, audit_logs.ip_address, users.username, users.fullname')
             ->join('users', 'audit_logs.actor_user_id = users.id', 'left')
-            ->orderBy('audit_logs.created_at', 'DESC')
-            ->limit(500)
+            ->orderBy($pagination['sort'], $pagination['direction'])
+            ->orderBy('audit_logs.id', $pagination['direction'])
+            ->limit($pagination['per_page'], $pagination['offset'])
             ->get()
             ->getResultArray();
 
         return view('pages/administrador/audit', array_merge($this->data, [
             'title' => 'Rejistu Auditoria',
             'logs' => $logs,
+            'pagination' => $pagination,
         ]));
+    }
+
+    /**
+     * @return array{page: int, per_page: int, offset: int, sort: string, direction: string}
+     */
+    private function auditPagination(): array
+    {
+        $perPage = (int) $this->request->getGet('per_page');
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+        $sorts = ['created_at' => 'audit_logs.created_at'];
+        $sortKey = (string) $this->request->getGet('sort');
+        $direction = strtolower((string) $this->request->getGet('direction'));
+
+        return [
+            'page' => max(1, (int) $this->request->getGet('page')),
+            'per_page' => $perPage,
+            'offset' => 0,
+            'sort' => $sorts[$sortKey] ?? $sorts['created_at'],
+            'direction' => $direction === 'asc' ? 'ASC' : 'DESC',
+        ];
     }
 
     public function maintenance()
     {
-        $dir = $this->backupDir();
         $files = [];
-        foreach (glob($dir . DIRECTORY_SEPARATOR . 'backup_*.sql') ?: [] as $file) {
+        foreach ($this->storage()->list('backups') as $backup) {
+            $fileName = basename($backup->key);
+            if (!preg_match('/^backup_\d{8}_\d{6}\.sql$/', $fileName)) {
+                continue;
+            }
             $files[] = [
-                'name' => basename($file),
-                'size' => filesize($file),
-                'modified_at' => date('Y-m-d H:i:s', filemtime($file)),
+                'name' => $fileName,
+                'size' => $backup->size,
+                'modified_at' => date('Y-m-d H:i:s', $backup->modifiedAt ?? time()),
             ];
         }
         usort($files, static fn($a, $b) => strcmp($b['modified_at'], $a['modified_at']));
@@ -1634,12 +1667,11 @@ class Administrador extends BaseController
 
     public function createBackup()
     {
-        $dir = $this->backupDir();
         $fileName = 'backup_' . date('Ymd_His') . '.sql';
-        $path = $dir . DIRECTORY_SEPARATOR . $fileName;
-        file_put_contents($path, $this->generateSqlBackup());
+        $backup = $this->generateSqlBackup();
+        $this->storage()->putContents('backups', $fileName, $backup, 'application/sql');
 
-        $this->logAudit('create_backup', 'backup', $fileName, null, ['size' => filesize($path)]);
+        $this->logAudit('create_backup', 'backup', $fileName, null, ['size' => strlen($backup)]);
         session()->setFlashdata('success', 'Kopia seguransa kria ona: ' . $fileName);
         return redirect()->back();
     }
@@ -1651,12 +1683,12 @@ class Administrador extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        $path = $this->backupDir() . DIRECTORY_SEPARATOR . $fileName;
-        if (!is_file($path)) {
+        $contents = $this->storage()->read('backups', $fileName);
+        if ($contents === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        return $this->response->download($path, null);
+        return $this->response->download($fileName, $contents);
     }
 
     public function restoreBackup()

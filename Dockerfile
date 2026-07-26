@@ -9,6 +9,7 @@ FROM php:8.3-apache-bookworm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
     libicu-dev \
     libpng-dev \
     libjpeg-dev \
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         intl \
+        curl \
         mysqli \
         gd \
         zip \

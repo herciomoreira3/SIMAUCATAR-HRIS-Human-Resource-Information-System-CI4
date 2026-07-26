@@ -26,6 +26,14 @@ if [[ "$CIENV" == 'production' ]]; then
         echo '[startup] Production requires DB_SSL=true to preserve database TLS verification.' >&2
         exit 78
     fi
+
+    if [[ "${STORAGE_DRIVER:-}" != 's3' ]]; then
+        echo '[startup] Production requires STORAGE_DRIVER=s3; local storage is ephemeral on Render.' >&2
+        exit 78
+    fi
+    for required in STORAGE_S3_ENDPOINT STORAGE_S3_BUCKET STORAGE_S3_REGION STORAGE_S3_ACCESS_KEY STORAGE_S3_SECRET_KEY; do
+        require_environment "$required"
+    done
 fi
 
 quote_env_value() {
@@ -69,6 +77,16 @@ if [[ "$CIENV" == 'production' ]]; then
 else
     write_env 'cookie.secure' "${COOKIE_SECURE:-false}"
 fi
+
+write_env 'storage.driver' "${STORAGE_DRIVER:-local}"
+write_env 'storage.s3.endpoint' "${STORAGE_S3_ENDPOINT:-}"
+write_env 'storage.s3.bucket' "${STORAGE_S3_BUCKET:-}"
+write_env 'storage.s3.region' "${STORAGE_S3_REGION:-us-east-1}"
+write_env 'storage.s3.accessKey' "${STORAGE_S3_ACCESS_KEY:-}"
+write_env 'storage.s3.secretKey' "${STORAGE_S3_SECRET_KEY:-}"
+write_env 'storage.s3.prefix' "${STORAGE_S3_PREFIX:-simaucatar}"
+write_env 'storage.s3.pathStyle' "${STORAGE_S3_PATH_STYLE:-true}"
+write_env 'storage.s3.timeoutSeconds' "${STORAGE_S3_TIMEOUT_SECONDS:-15}"
 
 if [[ "${DB_SSL:-false}" == 'true' || "${DB_SSL:-false}" == '1' ]]; then
     write_env 'database.default.encrypt.ssl_verify' 'true'

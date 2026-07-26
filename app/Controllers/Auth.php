@@ -127,7 +127,8 @@ class Auth extends BaseController
                 'title'         => 'Pajina Rejistu',
             ]);
 
-            session()->setFlashdata('notif_error', $this->validation->getError('inputPassword2') . ' ' . $this->validation->getError('inputEmail'));
+            $validation = service('validation');
+            session()->setFlashdata('notif_error', $validation->getError('inputPassword2') . ' ' . $validation->getError('inputEmail'));
             return view('pages/commons/register', $data);
         } else {
             $inputFullname = htmlspecialchars($this->request->getVar('inputFullname', FILTER_UNSAFE_RAW));

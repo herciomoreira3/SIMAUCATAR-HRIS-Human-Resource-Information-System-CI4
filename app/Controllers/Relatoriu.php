@@ -24,103 +24,87 @@ class Relatoriu extends BaseController
 
     public function funsionariu()
     {
-        $dept_id = $this->request->getGet('diresaun_id');
-        $poz_id = $this->request->getGet('pozisaun_id');
-        $kat_id = $this->request->getGet('kategoria_id');
-        $grau_id = $this->request->getGet('grau_id');
+        $filter = $this->employeeFilter('get');
+        $page = $this->pagination(['nid' => 'funsionariu.nid', 'naran' => 'funsionariu.naran_kompletu', 'data_hahu' => 'funsionariu.data_hahu_servisu'], 'naran', 'asc');
+        $total = $this->RelatoriuModel->countRekapFunsionariu($filter['diresaun_id'], $filter['pozisaun_id'], $filter['kategoria_id'], $filter['grau_id']);
+        $page = $this->pager($page, $total);
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Funsionáriu',
-            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id, $kat_id, $grau_id),
+            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($filter['diresaun_id'], $filter['pozisaun_id'], $filter['kategoria_id'], $filter['grau_id'], $page['per_page'], $page['offset'], $page['sort'], $page['direction']),
             'diresaun' => $this->ApplicationModel->getDiresaun(),
             'pozisaun' => $this->ApplicationModel->getPozisaun(),
             'kategoria' => $this->ApplicationModel->getKategoria(),
             'grau' => $this->ApplicationModel->getGrau(),
-            'filter' => [
-                'diresaun_id' => $dept_id,
-                'pozisaun_id' => $poz_id,
-                'kategoria_id' => $kat_id,
-                'grau_id' => $grau_id
-            ]
+            'filter' => $filter,
+            'pagination' => $page,
         ]);
         return view('pages/administrador/relatoriu/funsionariu', $data);
     }
 
     public function prezensa()
     {
-        $data_hahu = $this->request->getGet('data_hahu') ?? date('Y-m-01');
-        $data_remata = $this->request->getGet('data_remata') ?? date('Y-m-t');
-        $dept_id = $this->request->getGet('diresaun_id');
-        $estadu = $this->request->getGet('estadu');
+        $filter = $this->attendanceFilter('get');
+        $page = $this->pagination(['nid' => 'funsionariu.nid', 'naran' => 'funsionariu.naran_kompletu'], 'naran', 'asc');
+        $total = $this->RelatoriuModel->countRekapPrezensa($filter['data_hahu'], $filter['data_remata'], $filter['diresaun_id'], $filter['estadu']);
+        $page = $this->pager($page, $total);
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Prezensa',
-            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id, $estadu),
+            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($filter['data_hahu'], $filter['data_remata'], $filter['diresaun_id'], $filter['estadu'], $page['per_page'], $page['offset'], $page['sort'], $page['direction']),
             'diresaun' => $this->ApplicationModel->getDiresaun(),
-            'filter' => [
-                'data_hahu' => $data_hahu,
-                'data_remata' => $data_remata,
-                'diresaun_id' => $dept_id,
-                'estadu' => $estadu
-            ]
+            'filter' => $filter,
+            'pagination' => $page,
         ]);
         return view('pages/administrador/relatoriu/prezensa', $data);
     }
 
     public function salariu()
     {
-        $fulan = $this->request->getGet('fulan') ?? date('m');
-        $tinan = $this->request->getGet('tinan') ?? date('Y');
+        $filter = $this->periodFilter('get');
+        $page = $this->pagination(['nid' => 'funsionariu.nid', 'naran' => 'funsionariu.naran_kompletu', 'data' => 'salariu.data_pagamentu'], 'naran', 'asc');
+        $total = $this->RelatoriuModel->countRekapSalariu($filter['fulan'], $filter['tinan']);
+        $page = $this->pager($page, $total);
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Saláriu',
-            'salariu' => $this->RelatoriuModel->getRekapSalariu($fulan, $tinan),
-            'filter' => [
-                'fulan' => $fulan,
-                'tinan' => $tinan
-            ]
+            'salariu' => $this->RelatoriuModel->getRekapSalariu($filter['fulan'], $filter['tinan'], $page['per_page'], $page['offset'], $page['sort'], $page['direction']),
+            'filter' => $filter,
+            'pagination' => $page,
         ]);
         return view('pages/administrador/relatoriu/salariu', $data);
     }
 
     public function lisensa()
     {
-        $data_hahu = $this->request->getGet('data_hahu') ?? date('Y-m-01');
-        $data_remata = $this->request->getGet('data_remata') ?? date('Y-m-t');
-        $estadu = $this->request->getGet('estadu');
-        $tipu_lisensa = $this->request->getGet('tipu_lisensa');
+        $filter = $this->leaveFilter('get');
+        $page = $this->pagination(['nid' => 'funsionariu.nid', 'naran' => 'funsionariu.naran_kompletu', 'data_hahu' => 'lisensa.data_hahu', 'data_remata' => 'lisensa.data_remata'], 'data_hahu', 'desc');
+        $total = $this->RelatoriuModel->countRekapLisensa($filter['data_hahu'], $filter['data_remata'], $filter['estadu'], $filter['tipu_lisensa']);
+        $page = $this->pager($page, $total);
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Lisensa',
-            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu, $tipu_lisensa),
+            'lisensa' => $this->RelatoriuModel->getRekapLisensa($filter['data_hahu'], $filter['data_remata'], $filter['estadu'], $filter['tipu_lisensa'], $page['per_page'], $page['offset'], $page['sort'], $page['direction']),
             'tipu_lisensa' => $this->ApplicationModel->getTipuLisensa(),
-            'filter' => [
-                'data_hahu' => $data_hahu,
-                'data_remata' => $data_remata,
-                'estadu' => $estadu,
-                'tipu_lisensa' => $tipu_lisensa
-            ]
+            'filter' => $filter,
+            'pagination' => $page,
         ]);
         return view('pages/administrador/relatoriu/lisensa', $data);
     }
 
     public function sansaun()
     {
-        $fulan = $this->request->getGet('fulan') ?? date('m');
-        $tinan = $this->request->getGet('tinan') ?? date('Y');
-        $estadu = $this->request->getGet('estadu');
-        $tipu_sansaun_id = $this->request->getGet('tipu_sansaun_id');
+        $filter = $this->sanctionFilter('get');
+        $page = $this->pagination(['nid' => 'funsionariu.nid', 'naran' => 'funsionariu.naran_kompletu', 'data' => 'sansaun.data_sansaun'], 'data', 'desc');
+        $total = $this->RelatoriuModel->countRekapSansaun($filter['fulan'], $filter['tinan'], $filter['estadu'], $filter['tipu_sansaun_id']);
+        $page = $this->pager($page, $total);
 
         $data = array_merge($this->data, [
             'title' => 'Relatóriu Sansaun',
-            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu, $tipu_sansaun_id),
+            'sansaun' => $this->RelatoriuModel->getRekapSansaun($filter['fulan'], $filter['tinan'], $filter['estadu'], $filter['tipu_sansaun_id'], $page['per_page'], $page['offset'], $page['sort'], $page['direction']),
             'tipu_sansaun' => $this->ApplicationModel->getTipuSansaun(),
-            'filter' => [
-                'fulan' => $fulan,
-                'tinan' => $tinan,
-                'estadu' => $estadu,
-                'tipu_sansaun_id' => $tipu_sansaun_id
-            ]
+            'filter' => $filter,
+            'pagination' => $page,
         ]);
         return view('pages/administrador/relatoriu/sansaun', $data);
     }
@@ -129,15 +113,12 @@ class Relatoriu extends BaseController
 
     public function exportFunsionariu()
     {
-        $dept_id = $this->request->getPost('diresaun_id');
-        $poz_id = $this->request->getPost('pozisaun_id');
-        $kat_id = $this->request->getPost('kategoria_id');
-        $grau_id = $this->request->getPost('grau_id');
+        $filter = $this->employeeFilter('post');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Funsionáriu',
-            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($dept_id, $poz_id, $kat_id, $grau_id),
+            'funsionariu' => $this->RelatoriuModel->getRekapFunsionariu($filter['diresaun_id'], $filter['pozisaun_id'], $filter['kategoria_id'], $filter['grau_id']),
             'data_print' => date('d-m-Y H:i')
         ];
 
@@ -152,17 +133,14 @@ class Relatoriu extends BaseController
 
     public function exportPrezensa()
     {
-        $data_hahu = $this->request->getPost('data_hahu');
-        $data_remata = $this->request->getPost('data_remata');
-        $dept_id = $this->request->getPost('diresaun_id');
-        $estadu = $this->request->getPost('estadu');
+        $filter = $this->attendanceFilter('post');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Prezensa',
-            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($data_hahu, $data_remata, $dept_id, $estadu),
-            'data_hahu' => $data_hahu,
-            'data_remata' => $data_remata,
+            'prezensa' => $this->RelatoriuModel->getRekapPrezensa($filter['data_hahu'], $filter['data_remata'], $filter['diresaun_id'], $filter['estadu']),
+            'data_hahu' => $filter['data_hahu'],
+            'data_remata' => $filter['data_remata'],
             'data_print' => date('d-m-Y H:i')
         ];
 
@@ -177,15 +155,14 @@ class Relatoriu extends BaseController
 
     public function exportSalariu()
     {
-        $fulan = $this->request->getPost('fulan');
-        $tinan = $this->request->getPost('tinan');
+        $filter = $this->periodFilter('post');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Saláriu',
-            'salariu' => $this->RelatoriuModel->getRekapSalariu($fulan, $tinan),
-            'fulan' => $fulan,
-            'tinan' => $tinan,
+            'salariu' => $this->RelatoriuModel->getRekapSalariu($filter['fulan'], $filter['tinan']),
+            'fulan' => $filter['fulan'],
+            'tinan' => $filter['tinan'],
             'data_print' => date('d-m-Y H:i')
         ];
 
@@ -200,17 +177,14 @@ class Relatoriu extends BaseController
 
     public function exportLisensa()
     {
-        $data_hahu = $this->request->getPost('data_hahu');
-        $data_remata = $this->request->getPost('data_remata');
-        $estadu = $this->request->getPost('estadu');
-        $tipu_lisensa = $this->request->getPost('tipu_lisensa');
+        $filter = $this->leaveFilter('post');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Lisensa',
-            'lisensa' => $this->RelatoriuModel->getRekapLisensa($data_hahu, $data_remata, $estadu, $tipu_lisensa),
-            'data_hahu' => $data_hahu,
-            'data_remata' => $data_remata,
+            'lisensa' => $this->RelatoriuModel->getRekapLisensa($filter['data_hahu'], $filter['data_remata'], $filter['estadu'], $filter['tipu_lisensa']),
+            'data_hahu' => $filter['data_hahu'],
+            'data_remata' => $filter['data_remata'],
             'data_print' => date('d-m-Y H:i')
         ];
 
@@ -225,17 +199,14 @@ class Relatoriu extends BaseController
 
     public function exportSansaun()
     {
-        $fulan = $this->request->getPost('fulan');
-        $tinan = $this->request->getPost('tinan');
-        $estadu = $this->request->getPost('estadu');
-        $tipu_sansaun_id = $this->request->getPost('tipu_sansaun_id');
+        $filter = $this->sanctionFilter('post');
         $type = $this->request->getPost('export_type');
 
         $data = [
             'title' => 'Relatóriu Sansaun',
-            'sansaun' => $this->RelatoriuModel->getRekapSansaun($fulan, $tinan, $estadu, $tipu_sansaun_id),
-            'fulan' => $fulan,
-            'tinan' => $tinan,
+            'sansaun' => $this->RelatoriuModel->getRekapSansaun($filter['fulan'], $filter['tinan'], $filter['estadu'], $filter['tipu_sansaun_id']),
+            'fulan' => $filter['fulan'],
+            'tinan' => $filter['tinan'],
             'data_print' => date('d-m-Y H:i')
         ];
 
@@ -246,6 +217,97 @@ class Relatoriu extends BaseController
                 return [$row['nid'], $row['naran_kompletu'], $row['naran_tipu'], $row['data_sansaun'], $row['valor_total'], $row['estadu_sansaun']];
             });
         }
+    }
+
+    private function pagination(array $sorts, string $defaultSort, string $defaultDirection): array
+    {
+        $perPage = (int) $this->request->getGet('per_page');
+        $perPage = in_array($perPage, [10, 25, 50, 100], true) ? $perPage : 25;
+        $page = max(1, (int) $this->request->getGet('page'));
+        $sortKey = (string) $this->request->getGet('sort');
+        $direction = strtolower((string) $this->request->getGet('direction'));
+
+        return [
+            'page' => $page,
+            'per_page' => $perPage,
+            'offset' => ($page - 1) * $perPage,
+            'sort' => $sorts[$sortKey] ?? $sorts[$defaultSort],
+            'direction' => $direction === 'desc' ? 'DESC' : ($direction === 'asc' ? 'ASC' : strtoupper($defaultDirection)),
+        ];
+    }
+
+    private function pager(array $page, int $total): array
+    {
+        $page['total'] = $total;
+        $page['pages'] = max(1, (int) ceil($total / $page['per_page']));
+        $page['page'] = min($page['page'], $page['pages']);
+        $page['offset'] = ($page['page'] - 1) * $page['per_page'];
+        return $page;
+    }
+
+    private function employeeFilter(string $method): array
+    {
+        return [
+            'diresaun_id' => $this->positiveInt($method, 'diresaun_id'),
+            'pozisaun_id' => $this->positiveInt($method, 'pozisaun_id'),
+            'kategoria_id' => $this->positiveInt($method, 'kategoria_id'),
+            'grau_id' => $this->positiveInt($method, 'grau_id'),
+        ];
+    }
+
+    private function attendanceFilter(string $method): array
+    {
+        [$start, $end] = $this->dateRange($method);
+        $status = $this->input($method, 'estadu');
+        return ['data_hahu' => $start, 'data_remata' => $end, 'diresaun_id' => $this->positiveInt($method, 'diresaun_id'), 'estadu' => in_array($status, ['Prezente', 'Loron Sorin', 'Falta', 'Lisensa', 'Incomplete'], true) ? $status : null];
+    }
+
+    private function leaveFilter(string $method): array
+    {
+        [$start, $end] = $this->dateRange($method);
+        $status = $this->input($method, 'estadu');
+        $type = $this->input($method, 'tipu_lisensa');
+        return ['data_hahu' => $start, 'data_remata' => $end, 'estadu' => in_array($status, ['Pendente', 'Aprovadu', 'Rejeitadu'], true) ? $status : null, 'tipu_lisensa' => $type !== '' && strlen($type) <= 100 ? $type : null];
+    }
+
+    private function periodFilter(string $method): array
+    {
+        $month = (int) $this->input($method, 'fulan');
+        $year = (int) $this->input($method, 'tinan');
+        return ['fulan' => $month >= 1 && $month <= 12 ? $month : (int) date('n'), 'tinan' => $year >= 2000 && $year <= (int) date('Y') + 1 ? $year : (int) date('Y')];
+    }
+
+    private function sanctionFilter(string $method): array
+    {
+        $filter = $this->periodFilter($method);
+        $status = $this->input($method, 'estadu');
+        $filter['estadu'] = in_array($status, ['Ativu', 'Konkluidu', 'Retira'], true) ? $status : null;
+        $filter['tipu_sansaun_id'] = $this->positiveInt($method, 'tipu_sansaun_id');
+        return $filter;
+    }
+
+    private function dateRange(string $method): array
+    {
+        $start = $this->validDate($this->input($method, 'data_hahu')) ?: date('Y-m-01');
+        $end = $this->validDate($this->input($method, 'data_remata')) ?: date('Y-m-t');
+        return $end < $start ? [$start, $start] : [$start, $end];
+    }
+
+    private function validDate(string $value): ?string
+    {
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+        return $date && $date->format('Y-m-d') === $value ? $value : null;
+    }
+
+    private function positiveInt(string $method, string $key): ?int
+    {
+        $value = filter_var($this->input($method, $key), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        return $value === false ? null : $value;
+    }
+
+    private function input(string $method, string $key): string
+    {
+        return trim((string) ($method === 'post' ? $this->request->getPost($key) : $this->request->getGet($key)));
     }
 
     private function generatePDF($view, $data, $filename)

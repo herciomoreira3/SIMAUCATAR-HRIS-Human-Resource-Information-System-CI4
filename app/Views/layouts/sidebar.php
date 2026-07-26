@@ -40,9 +40,9 @@ $currentUri = uri_string();
             <?php endforeach; ?>
 
             <?php if ($roleName === 'administrador') : ?>
-                <li class="sidebar-header">Analitika &amp; RelatÃ³riu</li>
+                <li class="sidebar-header">Analitika &amp; Relatóriu</li>
                 <li class="sidebar-item <?= (isset($subsegment) && $subsegment === 'relatoriu') ? 'active' : ''; ?>">
-                    <a class="sidebar-link" href="<?= base_url('administrador/relatoriu'); ?>"><i class="align-middle" data-feather="bar-chart-2"></i> <span class="align-middle">RelatÃ³riu</span></a>
+                    <a class="sidebar-link" href="<?= base_url('administrador/relatoriu'); ?>"><i class="align-middle" data-feather="bar-chart-2"></i> <span class="align-middle">Relatóriu</span></a>
                 </li>
             <?php endif; ?>
         </ul>
