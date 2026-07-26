@@ -8,7 +8,7 @@ use CodeIgniter\Cache\CacheInterface;
 final class NavigationService
 {
     private const TTL = 300;
-    private const VERSION_KEY = 'simaucatar:navigation:v3:version';
+    private const VERSION_KEY = 'simaucatar:navigation:v4:version';
 
     public function __construct(private NavigationRepository $repository, private CacheInterface $cache)
     {
@@ -17,7 +17,7 @@ final class NavigationService
     public function forRole(int $roleId): array
     {
         $version = (int) ($this->cache->get(self::VERSION_KEY) ?: 1);
-        $key = "simaucatar:navigation:v3:role:{$roleId}:version:{$version}";
+        $key = "simaucatar:navigation:v4:role:{$roleId}:version:{$version}";
         $tree = $this->cache->get($key);
         if (is_array($tree)) {
             return $tree;

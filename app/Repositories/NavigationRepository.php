@@ -21,14 +21,17 @@ final class NavigationRepository
             'categories' => $this->db->table('user_menu_category')
                 ->select('id, menu_category')
                 ->orderBy('id', 'ASC')->get()->getResultArray(),
-            'menus' => $this->db->table('user_menu m')
-                ->select('m.id, m.menu_category, m.title, m.url, m.icon, m.parent')
-                ->join('user_access a', 'a.menu_id = m.id')
-                ->where('a.role_id', $roleId)->orderBy('a.id', 'ASC')->get()->getResultArray(),
-            'submenus' => $this->db->table('user_submenu sm')
-                ->select('sm.id, sm.menu, sm.title, sm.url')
-                ->join('user_access a', 'a.submenu_id = sm.id')
-                ->where('a.role_id', $roleId)->orderBy('a.id', 'ASC')->get()->getResultArray(),
+            // Explicit table names avoid alias parsing differences between the
+            // local driver and TiDB/MySQLi while preserving the same batched
+            // role-scoped reads.
+            'menus' => $this->db->table('user_menu')
+                ->select('user_menu.id, user_menu.menu_category, user_menu.title, user_menu.url, user_menu.icon, user_menu.parent')
+                ->join('user_access', 'user_access.menu_id = user_menu.id')
+                ->where('user_access.role_id', $roleId)->orderBy('user_access.id', 'ASC')->get()->getResultArray(),
+            'submenus' => $this->db->table('user_submenu')
+                ->select('user_submenu.id, user_submenu.menu, user_submenu.title, user_submenu.url')
+                ->join('user_access', 'user_access.submenu_id = user_submenu.id')
+                ->where('user_access.role_id', $roleId)->orderBy('user_access.id', 'ASC')->get()->getResultArray(),
         ];
     }
 }
