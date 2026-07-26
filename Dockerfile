@@ -2,6 +2,20 @@ FROM composer:2.7 AS dependencies
 
 WORKDIR /app
 
+# Composer resolves the locked production packages in this stage. Install the
+# same platform extensions required by those packages before resolving them;
+# otherwise PhpSpreadsheet fails on ext-gd even though the runtime stage has it.
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libicu-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" curl gd intl mysqli zip
+
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --classmap-authoritative
 
