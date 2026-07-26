@@ -80,13 +80,23 @@ abstract class BaseController extends Controller
                 log_message('error', '[layout] user query failed: {type}', ['type' => get_class($exception)]);
             }
             if ($role > 0) {
+                $navigationRepository = new NavigationRepository($this->db);
                 try {
                     $navigation = (new NavigationService(
-                        new NavigationRepository($this->db),
+                        $navigationRepository,
                         cache()
                     ))->forRole($role);
                 } catch (\Throwable $exception) {
                     log_message('error', '[layout] navigation query failed: {type}', ['type' => get_class($exception)]);
+                    try {
+                        // Render's ephemeral/file cache must never hide an
+                        // authorized menu. Fall back to the same three batched
+                        // TiDB reads without cache.
+                        $rows = $navigationRepository->forRole($role);
+                        $navigation = NavigationService::buildTree($rows['categories'], $rows['menus'], $rows['submenus']);
+                    } catch (\Throwable $fallbackException) {
+                        log_message('error', '[layout] navigation fallback failed: {type}', ['type' => get_class($fallbackException)]);
+                    }
                 }
             }
             try {

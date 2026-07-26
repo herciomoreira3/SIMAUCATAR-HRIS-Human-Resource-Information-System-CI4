@@ -38,6 +38,14 @@ final class NavigationTreeTest extends CIUnitTestCase
         $this->assertSame(5, $cache->values['simaucatar:navigation:v4:version']);
         $this->assertSame(300, $cache->ttls['simaucatar:navigation:v4:version']);
     }
+
+    public function testEmptyCachedTreeIsNotTreatedAsAnAuthorizationResult(): void
+    {
+        $source = file_get_contents(APPPATH . 'Services/NavigationService.php');
+
+        $this->assertStringContainsString('is_array($tree) && $tree !== []', $source);
+        $this->assertStringContainsString('freshForRole', $source);
+    }
 }
 
 final class InMemoryNavigationCache implements CacheInterface

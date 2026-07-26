@@ -19,14 +19,24 @@ final class NavigationService
         $version = (int) ($this->cache->get(self::VERSION_KEY) ?: 1);
         $key = "simaucatar:navigation:v4:role:{$roleId}:version:{$version}";
         $tree = $this->cache->get($key);
-        if (is_array($tree)) {
+        // An empty tree for a role with grants is a stale/partial cache value,
+        // not an authoritative authorization result. Rebuild it from the
+        // batched database query below.
+        if (is_array($tree) && $tree !== []) {
             return $tree;
         }
 
-        $rows = $this->repository->forRole($roleId);
-        $tree = self::buildTree($rows['categories'], $rows['menus'], $rows['submenus']);
+        $tree = $this->freshForRole($roleId);
         $this->cache->save($key, $tree, self::TTL);
         return $tree;
+    }
+
+    /** Build navigation directly from the database without reading/writing cache. */
+    public function freshForRole(int $roleId): array
+    {
+        $rows = $this->repository->forRole($roleId);
+
+        return self::buildTree($rows['categories'], $rows['menus'], $rows['submenus']);
     }
 
     public function invalidate(): void
