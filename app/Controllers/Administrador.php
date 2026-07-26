@@ -74,22 +74,51 @@ class Administrador extends BaseController
         $repository = new DashboardRepository($this->db);
         $now = new DateTimeImmutable('now', new DateTimeZone('Asia/Dili'));
         $start = $now->setTime(0, 0)->modify('-14 days');
-        $trend = $repository->getAdminAttendanceTrend($start, $now->setTime(0, 0));
-        $kpis = $repository->getAdminKpis($now);
+        $end = $now->setTime(0, 0);
+        try {
+            $trend = $repository->getAdminAttendanceTrend($start, $end);
+        } catch (\Throwable $exception) {
+            log_message('error', '[admin-dashboard] attendance trend query failed: {type}', ['type' => get_class($exception)]);
+            $trend = DashboardRepository::mapAttendanceSeries([], $start, $end);
+        }
+        try {
+            $kpis = $repository->getAdminKpis($now);
+        } catch (\Throwable $exception) {
+            log_message('error', '[admin-dashboard] KPI query failed: {type}', ['type' => get_class($exception)]);
+            $kpis = [];
+        }
+        try {
+            $announcements = $repository->getLatestAnnouncements(5, $now);
+        } catch (\Throwable $exception) {
+            log_message('error', '[admin-dashboard] announcement query failed: {type}', ['type' => get_class($exception)]);
+            $announcements = [];
+        }
+        try {
+            $sanctions = $repository->getLatestSanctions(5);
+        } catch (\Throwable $exception) {
+            log_message('error', '[admin-dashboard] sanction query failed: {type}', ['type' => get_class($exception)]);
+            $sanctions = [];
+        }
+        try {
+            $departmentComposition = $repository->getDepartmentComposition();
+        } catch (\Throwable $exception) {
+            log_message('error', '[admin-dashboard] department query failed: {type}', ['type' => get_class($exception)]);
+            $departmentComposition = [];
+        }
 
         $data = array_merge($this->data, [
             'title' => 'Painel Administrador',
             'total_funsionariu' => (int) ($kpis['total_funsionariu'] ?? 0),
             'total_prezensa_ohin' => (int) ($kpis['total_prezensa_ohin'] ?? 0),
             'pendente_lisensa' => (int) ($kpis['pendente_lisensa'] ?? 0),
-            'avizu_ikus' => $repository->getLatestAnnouncements(5, $now),
-            'sansaun_ikus' => $repository->getLatestSanctions(5),
+            'avizu_ikus' => $announcements,
+            'sansaun_ikus' => $sanctions,
             'chart_labels' => json_encode($trend['labels'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT),
             'chart_prezente' => json_encode($trend['series']['Prezente']),
             'chart_loron_sorin' => json_encode($trend['series']['Loron Sorin']),
             'chart_falta' => json_encode($trend['series']['Falta']),
             'chart_lisensa' => json_encode($trend['series']['Lisensa']),
-            'dept_comp' => json_encode($repository->getDepartmentComposition(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
+            'dept_comp' => json_encode($departmentComposition, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_NUMERIC_CHECK),
         ]);
         return view('pages/administrador/dashboard', $data);
     }

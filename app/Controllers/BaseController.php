@@ -74,14 +74,26 @@ abstract class BaseController extends Controller
         $announcements = [];
 
         if ($authenticated && $segment !== '' && $segment !== 'dashboard') {
-            $user = $this->ApplicationModel->getLayoutUser((int) session()->get('userID'));
-            if ($role > 0) {
-                $navigation = (new NavigationService(
-                    new NavigationRepository($this->db),
-                    cache()
-                ))->forRole($role);
+            try {
+                $user = $this->ApplicationModel->getLayoutUser((int) session()->get('userID'));
+            } catch (\Throwable $exception) {
+                log_message('error', '[layout] user query failed: {type}', ['type' => get_class($exception)]);
             }
-            $announcements = (new DashboardRepository($this->db))->getLatestAnnouncements(5, new \DateTimeImmutable('now', new \DateTimeZone('Asia/Dili')));
+            if ($role > 0) {
+                try {
+                    $navigation = (new NavigationService(
+                        new NavigationRepository($this->db),
+                        cache()
+                    ))->forRole($role);
+                } catch (\Throwable $exception) {
+                    log_message('error', '[layout] navigation query failed: {type}', ['type' => get_class($exception)]);
+                }
+            }
+            try {
+                $announcements = (new DashboardRepository($this->db))->getLatestAnnouncements(5, new \DateTimeImmutable('now', new \DateTimeZone('Asia/Dili')));
+            } catch (\Throwable $exception) {
+                log_message('error', '[layout] announcement query failed: {type}', ['type' => get_class($exception)]);
+            }
         }
 
         $this->data = [
