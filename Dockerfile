@@ -1,6 +1,8 @@
-FROM composer:2.7 AS dependencies
+FROM php:8.3-cli-bookworm AS dependencies
 
 WORKDIR /app
+
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # Composer resolves the locked production packages in this stage. Install the
 # same platform extensions required by those packages before resolving them;
