@@ -6,6 +6,8 @@ use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
 use App\Filters\Authorization;
 use App\Filters\Authentication;
+use App\Filters\PerformanceTelemetry;
+use App\Filters\SecurityHeaders;
 use CodeIgniter\Filters\Honeypot;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\ForceHTTPS;
@@ -36,6 +38,8 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'performanceTelemetry' => PerformanceTelemetry::class,
+        'securityHeaders' => SecurityHeaders::class,
         'isLoggedIn'    => Authentication::class,
         'auth'          => Authentication::class,
         'isGranted'     => Authorization::class,
@@ -57,13 +61,8 @@ class Filters extends BaseFilters
     public array $required = [
         'before' => [
             'forcehttps', // Force Global Secure Requests
-            'pagecache',  // Web Page Caching
         ],
-        'after' => [
-            'pagecache',   // Web Page Caching
-            'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
-        ],
+        'after' => [],
     ];
 
     /**
@@ -74,15 +73,16 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'isLoggedIn' => ['except' => ['/', 'register', 'login', 'cron/mark-absent', 'cron/ping']],
-            'isGranted'  => ['except' => ['/', 'register', 'login', 'logout', 'blocked', 'cron/mark-absent', 'cron/ping']],
+            'performanceTelemetry',
+            'isLoggedIn' => ['except' => ['/', 'register', 'login', 'cron/mark-absent', 'cron/ping', 'health/live', 'health/ready']],
+            'isGranted'  => ['except' => ['/', 'register', 'login', 'logout', 'blocked', 'cron/mark-absent', 'cron/ping', 'health/live', 'health/ready']],
             // 'honeypot',
             'csrf',
             // 'invalidchars',
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'securityHeaders',
+            'performanceTelemetry',
         ],
     ];
 

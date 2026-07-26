@@ -33,11 +33,14 @@ class Database extends Config
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
-        'DBDebug'      => true,
+        'DBDebug'      => ENVIRONMENT !== 'production',
         'charset'      => 'utf8mb4',
         'DBCollat'     => 'utf8mb4_general_ci',
         'swapPre'      => '',
-        'encrypt'      => false,
+        // TiDB Cloud requires TLS. Production starts with certificate verification
+        // enabled; optional ssl_ca/cert/key values are supplied as normal CI env
+        // overlays (database.default.encrypt.ssl_ca, etc.).
+        'encrypt'      => ENVIRONMENT === 'production' ? ['ssl_verify' => true] : false,
         'compress'     => false,
         'strictOn'     => false,
         'failover'     => [],
@@ -189,51 +192,4 @@ class Database extends Config
         ],
     ];
 
-    public function __construct()
-    {
-        parent::__construct();
-
-        // Support dynamic database SSL/encryption setup via environment variables (for TiDB Cloud)
-        $encryptVal = env('database.default.encrypt') ?? env('database_default_encrypt');
-        if ($encryptVal === 'true' || $encryptVal === '1') {
-            $this->default['encrypt'] = true;
-        } elseif ($encryptVal === 'ssl_verify') {
-            $this->default['encrypt'] = [
-                'ssl_verify' => true
-            ];
-        } elseif (is_string($encryptVal) && !empty($encryptVal)) {
-            $this->default['encrypt'] = json_decode($encryptVal, true) ?? $encryptVal;
-        }
-
-        // Support standard DB_* environment variable fallbacks (like on Render)
-        if ($dbHost = env('DB_HOST') ?? getenv('DB_HOST')) {
-            $this->default['hostname'] = $dbHost;
-        }
-        if ($dbUser = env('DB_USER') ?? getenv('DB_USER')) {
-            $this->default['username'] = $dbUser;
-        }
-        if ($dbPass = env('DB_PASS') ?? getenv('DB_PASS')) {
-            $this->default['password'] = $dbPass;
-        }
-        if ($dbName = env('DB_NAME') ?? getenv('DB_NAME')) {
-            $this->default['database'] = $dbName;
-        }
-        if ($dbPort = env('DB_PORT') ?? getenv('DB_PORT')) {
-            $this->default['port'] = (int) $dbPort;
-        }
-        if ($dbSSL = env('DB_SSL') ?? getenv('DB_SSL')) {
-            if ($dbSSL === 'true' || $dbSSL === '1' || $dbSSL === true) {
-                $this->default['encrypt'] = [
-                    'ssl_verify' => true
-                ];
-            }
-        }
-
-        // Ensure that we always set the database group to 'tests' if
-        // we are currently running an automated test suite, so that
-        // we don't overwrite live data on accident.
-        if (ENVIRONMENT === 'testing') {
-            $this->defaultGroup = 'tests';
-        }
-    }
 }

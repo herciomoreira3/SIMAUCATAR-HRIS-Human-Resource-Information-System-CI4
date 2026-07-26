@@ -13,6 +13,11 @@ $routes->get('blocked', 'Auth::forbiddenPage');
 $routes->get('register', 'Auth::register');
 $routes->post('register', 'Auth::registration');
 
+// Deliberately bypasses global authentication/RBAC filters. The controller is
+// minimal and does not extend BaseController, so probes cannot mutate state.
+$routes->get('health/live', 'Health::live');
+$routes->get('health/ready', 'Health::ready');
+
 $routes->get('dashboard', 'Home::index');
 
 // Setting Routes

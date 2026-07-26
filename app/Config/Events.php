@@ -5,6 +5,7 @@ namespace Config;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
 use CodeIgniter\HotReloader\HotReloader;
+use App\Libraries\PerformanceContext;
 
 /*
  * --------------------------------------------------------------------
@@ -24,6 +25,12 @@ use CodeIgniter\HotReloader\HotReloader;
  */
 
 Events::on('pre_system', static function (): void {
+    if (PerformanceContext::isEnabled()) {
+        Events::on('DBQuery', static function (\CodeIgniter\Database\Query $query): void {
+            PerformanceContext::recordQueryDuration((float) $query->getDuration(6));
+        });
+    }
+
     if (ENVIRONMENT !== 'testing') {
         if (ini_get('zlib.output_compression')) {
             throw FrameworkException::forEnabledZlibOutputCompression();

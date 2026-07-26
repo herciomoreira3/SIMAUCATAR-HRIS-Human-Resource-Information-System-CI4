@@ -5,6 +5,9 @@
 node_modules
 vendor
 tests
+docs
+scratch
+scripts
 writable/debugbar
 writable/logs
 writable/session
@@ -14,8 +17,11 @@ public/uploads/lisensa/*
 public/uploads/sansaun/*
 *.sql
 *.xlsx
+*.map
 .env
 env
+public/debug.php
+composer.phar
 phpunit.xml.dist
 docker-compose.yml
 docker-compose.override.yml

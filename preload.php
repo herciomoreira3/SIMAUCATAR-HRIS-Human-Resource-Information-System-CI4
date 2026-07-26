@@ -100,7 +100,6 @@ class preload
                 }
 
                 require_once $file[0];
-                echo 'Loaded: ' . $file[0] . "\n";
             }
         }
     }
