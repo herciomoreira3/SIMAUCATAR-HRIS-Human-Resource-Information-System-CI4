@@ -1,4 +1,8 @@
-<?php $anunsiuCount = count($avizu_notif ?? []); ?>
+<?php
+$layoutUser = is_array($user ?? null) ? $user : [];
+$notifications = is_array($avizu_notif ?? null) ? $avizu_notif : [];
+$anunsiuCount = count($notifications);
+?>
 <nav class="navbar navbar-expand navbar-light navbar-bg custom-header">
     <a class="sidebar-toggle js-sidebar-toggle">
         <i class="hamburger align-self-center"></i>
@@ -22,12 +26,12 @@
                         <span class="badge bg-primary-light text-primary" style="font-size: 10px;"><?= $anunsiuCount ?> Foun</span>
                     </div>
                     <div style="max-height: 300px; overflow-y: auto;">
-                        <?php if (empty($avizu_notif)): ?>
+                        <?php if (empty($notifications)): ?>
                             <div class="p-4 text-center">
                                 <p class="text-xs text-muted mb-0">La iha anunsiu foun.</p>
                             </div>
-                        <?php else: ?>
-                            <?php foreach (($avizu_notif ?? []) as $a): ?>
+                    <?php else: ?>
+                            <?php foreach ($notifications as $a): ?>
                                 <div class="dropdown-item-custom border-bottom" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 16px;">
                                     <p class="text-sm font-medium text-dark mb-0"><?= esc($a['titulu']) ?></p>
                                     <p class="text-xs text-muted mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"><?= esc(strip_tags($a['konteudu'])) ?></p>
@@ -47,8 +51,8 @@
             <!-- User Profile & Dropdown -->
             <div class="relative">
                 <div class="profile-trigger transition-standard" id="profileDropdownTrigger">
-                    <?php if (!empty($user['foto_perfil'])): ?>
-                        <img src="<?= base_url('uploads/perfil/' . $user['foto_perfil']) ?>" class="avatar-custom" alt="<?= esc($user['fullname'] ?? 'User'); ?>" />
+                    <?php if (!empty($layoutUser['foto_perfil'])): ?>
+                        <img src="<?= base_url('uploads/perfil/' . $layoutUser['foto_perfil']) ?>" class="avatar-custom" alt="<?= esc($layoutUser['fullname'] ?? 'User'); ?>" />
 <?php else: ?>
                         <div class="avatar-custom avatar-placeholder">
                             <i data-feather="user" class="text-secondary" style="width: 18px; height: 18px;"></i>
@@ -59,8 +63,8 @@
                 <!-- Dropdown Menu -->
                 <div class="dropdown-custom dropdown-animate-in" id="profileDropdown">
                     <div class="px-4 py-3 border-bottom">
-                        <p class="text-sm font-medium text-dark mb-0"><?= esc($user['fullname'] ?? 'User'); ?></p>
-                        <p class="text-xs text-muted mb-0"><?= esc($user['username'] ?? 'User'); ?></p>
+                        <p class="text-sm font-medium text-dark mb-0"><?= esc($layoutUser['fullname'] ?? 'User'); ?></p>
+                        <p class="text-xs text-muted mb-0"><?= esc($layoutUser['username'] ?? 'User'); ?></p>
                     </div>
                     <form action="<?= base_url('logout') ?>" method="post" class="m-0">
                         <?= csrf_field() ?>

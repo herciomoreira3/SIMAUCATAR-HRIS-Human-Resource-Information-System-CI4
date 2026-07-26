@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
+use CodeIgniter\Log\Handlers\ErrorlogHandler;
 use CodeIgniter\Log\Handlers\FileHandler;
 
 class Logger extends BaseConfig
@@ -118,6 +119,14 @@ class Logger extends BaseConfig
              * Specify a different destination here, if desired.
              */
             'path' => '',
+        ],
+
+        // Render collects PHP's native error log (stderr). Keep this limited
+        // to actionable failures so the platform exposes the root exception
+        // for production diagnosis without duplicating normal request logs.
+        ErrorlogHandler::class => [
+            'handles' => ['critical', 'error', 'alert', 'emergency'],
+            'messageType' => ErrorlogHandler::TYPE_OS,
         ],
 
         /*
