@@ -77,7 +77,7 @@ final class DashboardRepository
     public function getLatestSanctions(int $limit): array
     {
         return $this->db->table('sansaun s')
-            ->select('s.id, s.data_sansaun, f.naran_kompletu, ts.naran_tipu, ts.kategoria')
+            ->select('s.id, s.data_sansaun, f.naran_kompletu, ts.naran_tipu AS tipu_sansaun, ts.kategoria')
             ->join('funsionariu f', 'f.id = s.funsionariu_id')
             ->join('tipu_sansaun ts', 'ts.id = s.tipu_sansaun_id', 'left')
             ->orderBy('s.created_at', 'DESC')

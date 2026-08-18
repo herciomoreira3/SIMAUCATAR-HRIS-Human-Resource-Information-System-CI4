@@ -145,9 +145,9 @@
                         <?php else: ?>
                             <?php foreach(array_slice($avizu_ikus, 0, 5) as $av): ?>
                             <tr>
-                                <td class="font-medium"><?= esc($av['titulu']) ?></td>
-                                <td><span class="text-xs"><?= date('d M Y', strtotime($av['data_publikasaun'])) ?></span></td>
-                                <td class="text-muted"><?= esc(substr(strip_tags($av['konteudu']), 0, 40)) ?>...</td>
+                                <td class="font-medium"><?= esc($av['titulu'] ?? '') ?></td>
+                                <td><span class="text-xs"><?= !empty($av['data_publikasaun']) ? date('d M Y', strtotime($av['data_publikasaun'])) : '' ?></span></td>
+                                <td class="text-muted"><?= esc(substr(strip_tags($av['konteudu'] ?? ''), 0, 40)) ?>...</td>
                             </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -172,8 +172,8 @@
                                 <i data-feather="alert-circle" class="text-danger" style="width: 14px; height: 14px;"></i>
                             </div>
                             <div>
-                                <p class="mb-0 font-medium text-dark" style="font-size: 0.85rem;"><?= esc($s['naran_kompletu']) ?></p>
-                                <small class="text-muted d-block" style="font-size: 0.75rem;"><?= esc($s['tipu_sansaun']) ?> - <?= date('d M Y', strtotime($s['data_sansaun'])) ?></small>
+                                <p class="mb-0 font-medium text-dark" style="font-size: 0.85rem;"><?= esc($s['naran_kompletu'] ?? '') ?></p>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;"><?= esc($s['tipu_sansaun'] ?? 'Tipu la hatene') ?> - <?= !empty($s['data_sansaun']) ? date('d M Y', strtotime($s['data_sansaun'])) : 'Data la disponivel' ?></small>
                             </div>
                         </li>
                         <?php endforeach; ?>
