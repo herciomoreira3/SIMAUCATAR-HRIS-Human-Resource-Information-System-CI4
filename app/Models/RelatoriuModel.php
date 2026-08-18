@@ -27,10 +27,18 @@ class RelatoriuModel extends Model
     public function countRekapPrezensa(string $dataHahu, string $dataRemata, $departamentuId = null, $estadu = null): int
     {
         $builder = $this->prezensaBuilder($dataHahu, $dataRemata, $departamentuId, $estadu);
-        // The status filter is an aggregate HAVING clause, so count the grouped
-        // result in SQL instead of loading every employee summary into PHP.
         $sql = $builder->getCompiledSelect();
-        return (int) ($this->db->query('SELECT COUNT(*) AS total FROM (' . $sql . ') AS report_rows')->getRowArray()['total'] ?? 0);
+        try {
+            $result = $this->db->query('SELECT COUNT(*) AS total FROM (' . $sql . ') AS report_rows');
+            if ($result === false) {
+                return count($this->getRekapPrezensa($dataHahu, $dataRemata, $departamentuId, $estadu));
+            }
+            $row = $result->getRowArray();
+            return (int) ($row['total'] ?? 0);
+        } catch (\Throwable $e) {
+            log_message('error', '[RelatoriuModel] countRekapPrezensa query failed: {msg}', ['msg' => $e->getMessage()]);
+            return count($this->getRekapPrezensa($dataHahu, $dataRemata, $departamentuId, $estadu));
+        }
     }
 
     public function getRekapSalariu($fulan, $tinan, ?int $perPage = null, int $offset = 0, string $sort = 'funsionariu.naran_kompletu', string $direction = 'ASC'): array
@@ -77,7 +85,7 @@ class RelatoriuModel extends Model
 
     private function prezensaBuilder(string $dataHahu, string $dataRemata, $departamentuId, $estadu): BaseBuilder
     {
-        $builder = $this->db->table('prezensa')->select('funsionariu.nid, funsionariu.naran_kompletu, departamentu.naran_departamentu, departamentu.naran_departamentu AS naran_diresaun, SUM(IF(estadu_prezensa = "Prezente", 1, 0)) AS total_prezente, SUM(IF(estadu_prezensa = "Loron Sorin", 1, 0)) AS total_loron_sorin, SUM(IF(estadu_prezensa = "Falta", 1, 0)) AS total_falta, SUM(IF(estadu_prezensa = "Lisensa", 1, 0)) AS total_lisensa, SUM(IF(estadu_prezensa = "Incomplete", 1, 0)) AS total_incomplete')->join('funsionariu', 'prezensa.funsionariu_id = funsionariu.id')->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')->where('data_prezensa >=', $dataHahu)->where('data_prezensa <=', $dataRemata)->groupBy('prezensa.funsionariu_id');
+        $builder = $this->db->table('prezensa')->select('funsionariu.nid, funsionariu.naran_kompletu, departamentu.naran_departamentu, departamentu.naran_departamentu AS naran_diresaun, SUM(IF(estadu_prezensa = "Prezente", 1, 0)) AS total_prezente, SUM(IF(estadu_prezensa = "Loron Sorin", 1, 0)) AS total_loron_sorin, SUM(IF(estadu_prezensa = "Falta", 1, 0)) AS total_falta, SUM(IF(estadu_prezensa = "Lisensa", 1, 0)) AS total_lisensa, SUM(IF(estadu_prezensa = "Incomplete", 1, 0)) AS total_incomplete')->join('funsionariu', 'prezensa.funsionariu_id = funsionariu.id')->join('departamentu', 'funsionariu.departamentu_id = departamentu.id')->where('data_prezensa >=', $dataHahu)->where('data_prezensa <=', $dataRemata)->groupBy(['prezensa.funsionariu_id', 'funsionariu.nid', 'funsionariu.naran_kompletu', 'departamentu.naran_departamentu']);
         if ($departamentuId !== null) $builder->where('funsionariu.departamentu_id', $departamentuId);
         $having = ['Prezente' => 'total_prezente', 'Loron Sorin' => 'total_loron_sorin', 'Falta' => 'total_falta', 'Lisensa' => 'total_lisensa', 'Incomplete' => 'total_incomplete'];
         if (isset($having[$estadu])) $builder->having($having[$estadu] . ' >', 0);
@@ -110,11 +118,22 @@ class RelatoriuModel extends Model
     private function result(BaseBuilder $builder, ?int $perPage, int $offset, string $sort, string $direction): array
     {
         $builder->orderBy($sort, $direction);
-        return $perPage === null ? $builder->get()->getResultArray() : $builder->get($perPage, $offset)->getResultArray();
+        try {
+            $result = $perPage === null ? $builder->get() : $builder->get($perPage, $offset);
+            return $result === false ? [] : $result->getResultArray();
+        } catch (\Throwable $e) {
+            log_message('error', '[RelatoriuModel] result query failed: {msg}', ['msg' => $e->getMessage()]);
+            return [];
+        }
     }
 
     private function count(BaseBuilder $builder): int
     {
-        return (int) $builder->countAllResults();
+        try {
+            return (int) $builder->countAllResults();
+        } catch (\Throwable $e) {
+            log_message('error', '[RelatoriuModel] count query failed: {msg}', ['msg' => $e->getMessage()]);
+            return 0;
+        }
     }
 }
